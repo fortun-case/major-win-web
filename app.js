@@ -1,261 +1,261 @@
+// НАСТРОЙКИ FIREBASE (Вставь свои данные, если они изменились)
 const firebaseConfig = {
     apiKey: "AIzaSyAZxG500x9pmjg1sy6iJXMKrUMhZ2TFFCk",
     authDomain: "major-win.firebaseapp.com",
     projectId: "major-win",
     databaseURL: "https://major-win-default-rtdb.europe-west1.firebasedatabase.app",
-    storageBucket: "major-win.firebasestorage.app",
-    messagingSenderId: "253408264315",
-    appId: "1:253408264315:web:1246e65a3c2ed70c4362de"
+    storageBucket: "major-win.firebasestorage.app"
 };
 
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 const auth = firebase.auth();
 const db = firebase.database();
 
+// БАЗА СКИНОВ
 const itemsDB = [
-    { name: "P250 | Sand Dune", chance: 70, color: "#b0c3d9", price: 5 },
-    { name: "AK-47 | Slate", chance: 20, color: "#4b69ff", price: 150 },
-    { name: "M4A1-S | Printstream", chance: 9, color: "#eb4b4b", price: 900 },
-    { name: "★ Butterfly Knife", chance: 1, color: "#ffca2d", price: 3500 }
+    { name: "P250 | Sand Dune", chance: 60, color: "#b0c3d9", price: 5 },
+    { name: "Glock-18 | Fade", chance: 25, color: "#eb4b4b", price: 150 },
+    { name: "AK-47 | Redline", chance: 12, color: "#d32ce6", price: 800 },
+    { name: "★ Karambit | Lore", chance: 3, color: "#ffca2d", price: 5000 }
 ];
 
-let user = { balance: 0, inventory: [], nickname: "Игрок", xp: 0 };
-let uid = null;
+let userData = { balance: 0, inventory: [], nickname: "Игрок" };
+let currentUser = null;
 
-// Локальные стейты
-let contractItems = [];
-let upgradeItemIndex = null;
+// ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК (ГАРАНТИРОВАНО РАБОТАЕТ)
+window.switchTab = (tabId) => {
+    // Убираем активные классы везде
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active-tab'));
+    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+    
+    // Включаем нужные
+    document.getElementById(tabId + '-section').classList.add('active-tab');
+    event.target.classList.add('active');
 
-// ИНИЦИАЛИЗАЦИЯ
-auth.onAuthStateChanged((u) => {
-    if (u) {
-        uid = u.uid;
-        document.getElementById('login-btn').style.display = 'none';
-        document.getElementById('user-controls').style.display = 'flex';
+    // Сбрасываем выделения при переходе
+    contractSelection = [];
+    upgradeSelection = null;
+    renderInventories();
+};
+
+// АВТОРИЗАЦИЯ
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        currentUser = user;
+        document.getElementById('auth-btn').style.display = 'none';
+        document.getElementById('user-panel').style.display = 'flex';
         
-        db.ref('users/' + uid).on('value', (snap) => {
-            const data = snap.val();
-            if (data) {
-                user = data;
-                if (!user.inventory) user.inventory = [];
+        db.ref('users/' + user.uid).on('value', (snap) => {
+            if (snap.exists()) {
+                userData = snap.val();
+                if (!userData.inventory) userData.inventory = [];
             } else {
-                user = { balance: 1000, inventory: [], nickname: "Новичок", xp: 0 };
-                saveDB();
+                userData = { balance: 1000, inventory: [], nickname: "Новичок" };
+                db.ref('users/' + user.uid).set(userData);
             }
-            renderAll();
+            updateUI();
         });
     }
 });
 
-function saveDB() { if (uid) db.ref('users/' + uid).set(user); }
-
-// НАВИГАЦИЯ
-window.switchTab = (tab) => {
-    document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active-pane'));
-    document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-    document.getElementById(`${tab}-section`).classList.add('active-pane');
-    document.getElementById(`tab-${tab}`).classList.add('active');
-    
-    // Сброс стейтов при переходе
-    contractItems = [];
-    upgradeItemIndex = null;
-    renderAll();
+document.getElementById('auth-btn').onclick = () => {
+    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
 };
 
-// 1. КЕЙСЫ (РУЛЕТКА)
-document.getElementById('open-btn').onclick = () => {
-    if (user.balance < 50) return alert("Недостаточно средств");
+function saveDB() {
+    if (currentUser) db.ref('users/' + currentUser.uid).set(userData);
+}
+
+// ---------------- КЕЙСЫ И РУЛЕТКА ----------------
+window.openCaseModal = () => {
+    document.getElementById('case-modal').style.display = 'flex';
+    document.getElementById('roulette-line').innerHTML = '';
+    document.getElementById('roulette-line').style.transform = 'translateX(0)';
+};
+
+document.getElementById('btn-spin').onclick = () => {
+    if (userData.balance < 50) return alert("Недостаточно средств (Нужно 50 ₽)");
     
-    const btn = document.getElementById('open-btn');
+    const btn = document.getElementById('btn-spin');
     btn.disabled = true;
-    user.balance -= 50;
+    userData.balance -= 50;
     saveDB();
 
-    const track = document.getElementById('roulette-line');
-    track.style.transition = "none";
-    track.style.transform = "translateX(0)";
-    track.innerHTML = "";
+    const line = document.getElementById('roulette-line');
+    line.style.transition = 'none';
+    line.style.transform = 'translateX(0)';
+    line.innerHTML = '';
 
-    let pool = [];
-    for (let i = 0; i < 60; i++) {
-        let rand = Math.random() * 100, cum = 0, drop = itemsDB[0];
-        for (let it of itemsDB) { cum += it.chance; if (rand < cum) { drop = it; break; } }
-        pool.push(drop);
-        const el = document.createElement('div');
-        el.className = 'roulette-item';
-        el.style.borderBottomColor = drop.color;
-        el.innerText = drop.name;
-        track.appendChild(el);
+    let items = [];
+    for(let i=0; i<60; i++) {
+        let r = Math.random() * 100, sum = 0, drop = itemsDB[0];
+        for(let it of itemsDB) { sum += it.chance; if(r <= sum) { drop = it; break; } }
+        items.push(drop);
+        
+        const div = document.createElement('div');
+        div.className = 'roulette-item';
+        div.style.borderBottomColor = drop.color;
+        div.innerHTML = `<b>${drop.name}</b><br><span style="color:#8b8e9d">${drop.price} ₽</span>`;
+        line.appendChild(div);
     }
 
-    const winItem = pool[55];
+    const winItem = items[50]; // Победный предмет
 
     setTimeout(() => {
-        track.style.transition = "transform 5s cubic-bezier(0.1, 0, 0, 1)";
-        const move = (130 * 55) - (800 / 2) + 65; // 130 ширина + border
-        track.style.transform = `translateX(-${move}px)`;
+        line.style.transition = 'transform 5s cubic-bezier(0.1, 0, 0, 1)';
+        // Ширина элемента 150px (140 + margin 5*2)
+        const offset = (150 * 50) - (line.parentElement.offsetWidth / 2) + 75;
+        line.style.transform = `translateX(-${offset}px)`;
     }, 50);
 
     setTimeout(() => {
-        user.inventory.unshift(winItem);
-        user.xp += 20;
-        document.getElementById('item-name').innerText = winItem.name;
-        document.getElementById('item-name').style.color = winItem.color;
-        addLiveFeed(winItem);
-        btn.disabled = false;
+        userData.inventory.unshift(winItem);
         saveDB();
+        addLiveDrop(winItem);
+        btn.disabled = false;
+        alert(`Вы выбили: ${winItem.name}`);
     }, 5100);
 };
 
-// 2. КОНТРАКТЫ
-window.addToContract = (index) => {
-    if (contractItems.length >= 3) return;
-    contractItems.push({ item: user.inventory[index], originalIndex: index });
-    renderAll();
-};
+// ---------------- ЛЕНТА (СЛЕВА) ----------------
+function addLiveDrop(item) {
+    const feed = document.getElementById('live-feed');
+    const div = document.createElement('div');
+    div.className = 'feed-item';
+    div.innerHTML = `
+        <div style="font-size:30px">🔫</div>
+        <div class="name">${item.name}</div>
+        <div class="price">${item.price} ₽</div>
+    `;
+    feed.prepend(div);
+    if(feed.children.length > 8) feed.lastChild.remove();
+}
 
-document.getElementById('exchange-btn').onclick = () => {
-    // Удаляем предметы из инвентаря с конца, чтобы не сбить индексы
-    const indices = contractItems.map(c => c.originalIndex).sort((a,b) => b-a);
-    indices.forEach(i => user.inventory.splice(i, 1));
-    
-    // Выдаем случайный предмет дороже 5$
-    const betterItems = itemsDB.filter(i => i.price > 5);
-    const reward = betterItems[Math.floor(Math.random() * betterItems.length)];
-    
-    user.inventory.unshift(reward);
-    contractItems = [];
-    saveDB();
-    alert(`Контракт выполнен! Получено: ${reward.name}`);
-};
+// ---------------- АПГРЕЙДЫ ----------------
+let upgradeSelection = null;
 
-// 3. АПГРЕЙДЫ
 window.selectForUpgrade = (index) => {
-    upgradeItemIndex = index;
-    renderAll();
+    upgradeSelection = index;
+    renderInventories();
 };
 
-document.getElementById('upgrade-btn').onclick = () => {
-    const chance = 50; // Жесткий шанс 50% для простоты
-    const item = user.inventory[upgradeItemIndex];
+document.getElementById('btn-do-upgrade').onclick = () => {
+    if (upgradeSelection === null) return;
+    const chance = 50; // Шанс 50%
+    const item = userData.inventory[upgradeSelection];
     
     // Ищем предмет в 2 раза дороже
-    const possibleTargets = itemsDB.filter(i => i.price >= item.price * 2);
-    const target = possibleTargets.length ? possibleTargets[0] : itemsDB[itemsDB.length-1];
+    const targets = itemsDB.filter(i => i.price >= item.price * 2);
+    const target = targets.length > 0 ? targets[0] : itemsDB[itemsDB.length-1];
 
-    user.inventory.splice(upgradeItemIndex, 1); // Забираем предмет
+    userData.inventory.splice(upgradeSelection, 1); // Удаляем старый предмет
 
     if (Math.random() * 100 <= chance) {
-        user.inventory.unshift(target);
-        alert(`УСПЕХ! Вы получили ${target.name}`);
+        userData.inventory.unshift(target); // Выдаем новый
+        addLiveDrop(target);
+        alert(`АПГРЕЙД УСПЕШЕН! Получено: ${target.name}`);
     } else {
-        alert("ПРОВАЛ! Скин сгорел.");
+        alert("АПГРЕЙД СГОРЕЛ!");
     }
     
-    upgradeItemIndex = null;
+    upgradeSelection = null;
     saveDB();
 };
 
-// ПРОДАЖА
+// ---------------- КОНТРАКТЫ ----------------
+let contractSelection = [];
+
+window.toggleContractItem = (index) => {
+    const pos = contractSelection.indexOf(index);
+    if (pos > -1) {
+        contractSelection.splice(pos, 1); // Убрать, если уже выбран
+    } else {
+        if (contractSelection.length < 3) contractSelection.push(index); // Добавить
+    }
+    renderInventories();
+};
+
+document.getElementById('btn-do-contract').onclick = () => {
+    if (contractSelection.length < 3) return;
+    
+    // Удаляем с конца, чтобы не сбить индексы
+    contractSelection.sort((a,b) => b-a).forEach(idx => userData.inventory.splice(idx, 1));
+    
+    const reward = itemsDB[Math.floor(Math.random() * (itemsDB.length - 1)) + 1]; // Любой кроме ширпотреба
+    userData.inventory.unshift(reward);
+    
+    contractSelection = [];
+    addLiveDrop(reward);
+    saveDB();
+    alert(`Контракт выполнен! Вы получили ${reward.name}`);
+};
+
+// ---------------- ПРОДАЖА И РЕНДЕР ----------------
 window.sellItem = (index) => {
-    user.balance += user.inventory[index].price;
-    user.inventory.splice(index, 1);
+    userData.balance += userData.inventory[index].price;
+    userData.inventory.splice(index, 1);
     saveDB();
 };
 
-// РЕНДЕР ИНТЕРФЕЙСА
-function renderAll() {
-    // Базовые данные
-    document.getElementById('balance-amount').innerText = Math.floor(user.balance);
-    document.getElementById('display-nickname').innerText = user.nickname;
-    document.getElementById('user-level').innerText = Math.floor(user.xp / 100) + 1;
-    document.getElementById('xp-bar-fill').style.width = `${user.xp % 100}%`;
+function updateUI() {
+    document.getElementById('balance-amount').innerText = userData.balance;
+    document.getElementById('profile-nick').innerText = userData.nickname;
+    renderInventories();
+}
 
-    // Инвентарь в Профиле
-    const mainInv = document.getElementById('main-inventory');
-    mainInv.innerHTML = user.inventory.map((it, i) => `
-        <div class="inv-card" style="border-bottom-color: ${it.color}">
-            <b>${it.name}</b><span class="price">${it.price}$</span>
-            <button class="action-btn sell" onclick="sellItem(${i})">ПРОДАТЬ</button>
+function renderInventories() {
+    const inv = userData.inventory || [];
+    
+    // 1. Профиль (Главный инвентарь)
+    document.getElementById('main-inv').innerHTML = inv.map((it, i) => `
+        <div class="inv-item" style="border-bottom-color: ${it.color}">
+            <b>${it.name}</b><br><span style="color:var(--text-muted)">${it.price} ₽</span>
+            <button class="sell-btn" onclick="sellItem(${i})">ПРОДАТЬ</button>
         </div>
     `).join('');
 
-    // Инвентарь в Контрактах
-    document.getElementById('contract-inventory').innerHTML = user.inventory.map((it, i) => {
-        const isSelected = contractItems.find(c => c.originalIndex === i);
-        if (isSelected) return '';
-        return `<div class="inv-card" style="border-bottom-color: ${it.color}" onclick="addToContract(${i})">
-            <b>${it.name}</b><span class="price">${it.price}$</span>
-        </div>`;
-    }).join('');
+    // 2. Инвентарь Апгрейдов
+    document.getElementById('upgrade-inv').innerHTML = inv.map((it, i) => `
+        <div class="inv-item ${upgradeSelection === i ? 'selected' : ''}" style="border-bottom-color: ${it.color}" onclick="selectForUpgrade(${i})">
+            <b>${it.name}</b><br><span style="color:var(--text-muted)">${it.price} ₽</span>
+        </div>
+    `).join('');
 
-    // Слоты контракта
+    // Отрисовка выбранного слота апгрейда
+    const upgFrom = document.getElementById('upg-from');
+    const upgTo = document.getElementById('upg-to');
+    if (upgradeSelection !== null) {
+        const item = inv[upgradeSelection];
+        upgFrom.innerHTML = `<b>${item.name}</b><br>${item.price} ₽`;
+        upgFrom.style.borderColor = item.color;
+        
+        const targets = itemsDB.filter(i => i.price >= item.price * 2);
+        const target = targets.length > 0 ? targets[0] : itemsDB[itemsDB.length-1];
+        
+        upgTo.innerHTML = `<b>${target.name}</b><br>${target.price} ₽`;
+        upgTo.style.borderColor = target.color;
+    } else {
+        upgFrom.innerHTML = 'ВЫБЕРИТЕ СКИН'; upgFrom.style.borderColor = '';
+        upgTo.innerHTML = 'ЦЕЛЬ'; upgTo.style.borderColor = '';
+    }
+
+    // 3. Инвентарь Контрактов
+    document.getElementById('contract-inv').innerHTML = inv.map((it, i) => `
+        <div class="inv-item ${contractSelection.includes(i) ? 'selected' : ''}" style="border-bottom-color: ${it.color}" onclick="toggleContractItem(${i})">
+            <b>${it.name}</b><br><span style="color:var(--text-muted)">${it.price} ₽</span>
+        </div>
+    `).join('');
+
+    // Отрисовка слотов контракта
     const cSlots = document.getElementById('contract-slots');
     cSlots.innerHTML = '';
     for(let i=0; i<3; i++) {
-        if (contractItems[i]) {
-            cSlots.innerHTML += `<div class="slot" style="border-bottom-color: ${contractItems[i].item.color}"><b>${contractItems[i].item.name}</b></div>`;
+        if (contractSelection[i] !== undefined) {
+            const item = inv[contractSelection[i]];
+            cSlots.innerHTML += `<div class="c-slot" style="border-color:${item.color}; color:#fff"><b>${item.name}</b></div>`;
         } else {
-            cSlots.innerHTML += `<div class="slot empty"></div>`;
+            cSlots.innerHTML += `<div class="c-slot">ПУСТО</div>`;
         }
     }
-    document.getElementById('exchange-btn').disabled = contractItems.length !== 3;
-
-    // Инвентарь в Апгрейдах
-    document.getElementById('upgrade-inventory').innerHTML = user.inventory.map((it, i) => 
-        `<div class="inv-card" style="border-bottom-color: ${it.color}" onclick="selectForUpgrade(${i})">
-            <b>${it.name}</b><span class="price">${it.price}$</span>
-        </div>`
-    ).join('');
-
-    // Слоты апгрейда
-    const upgFrom = document.getElementById('upg-slot-from');
-    const upgTo = document.getElementById('upg-slot-to');
-    const upgBtn = document.getElementById('upgrade-btn');
-    
-    if (upgradeItemIndex !== null) {
-        const item = user.inventory[upgradeItemIndex];
-        upgFrom.innerHTML = `<b>${item.name}</b><br>${item.price}$`;
-        upgFrom.className = 'slot';
-        upgFrom.style.borderBottomColor = item.color;
-        
-        const possibleTargets = itemsDB.filter(i => i.price >= item.price * 2);
-        const target = possibleTargets.length ? possibleTargets[0] : itemsDB[itemsDB.length-1];
-        
-        upgTo.innerHTML = `<b>${target.name}</b><br>${target.price}$`;
-        upgTo.className = 'slot';
-        upgTo.style.borderBottomColor = target.color;
-        
-        upgBtn.disabled = false;
-    } else {
-        upgFrom.innerHTML = 'ВАШ СКИН'; upgFrom.className = 'slot empty'; upgFrom.style.borderColor = '';
-        upgTo.innerHTML = 'ЦЕЛЬ'; upgTo.className = 'slot empty target'; upgTo.style.borderColor = '';
-        upgBtn.disabled = true;
-    }
+    document.getElementById('btn-do-contract').disabled = contractSelection.length !== 3;
 }
-
-// ЛЕНТА
-function addLiveFeed(item) {
-    const feed = document.getElementById('live-drop-line');
-    const el = document.createElement('div');
-    el.className = 'feed-item';
-    el.style.borderBottomColor = item.color;
-    el.innerHTML = `<span>${item.name}</span> <span style="color:var(--text-muted)">${item.price}$</span>`;
-    feed.prepend(el);
-    if (feed.children.length > 8) feed.lastChild.remove();
-}
-
-// ПРОФИЛЬ (ОКНО, НИК, ПРОМО)
-document.getElementById('profile-open-btn').onclick = () => { document.getElementById('profile-modal').style.display = 'flex'; };
-document.getElementById('close-profile').onclick = () => { document.getElementById('profile-modal').style.display = 'none'; };
-document.getElementById('login-btn').onclick = () => auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-
-document.getElementById('save-nickname-btn').onclick = () => {
-    const val = document.getElementById('nickname-input').value.trim();
-    if (val) { user.nickname = val; saveDB(); alert("Ник обновлен"); }
-};
-document.getElementById('apply-promo-btn').onclick = () => {
-    if (document.getElementById('promo-input').value.toUpperCase() === "START") {
-        user.balance += 500; saveDB(); alert("+500$");
-    }
-};
