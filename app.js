@@ -3,6 +3,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyAZxG500x9pmjg1sy6iJXMKrUMhZ2TFFCk",
   authDomain: "major-win.firebaseapp.com",
   projectId: "major-win",
+  databaseURL: "https://major-win-default-rtdb.europe-west1.firebasedatabase.app", // Добавили ссылку на базу
   storageBucket: "major-win.firebasestorage.app",
   messagingSenderId: "253408264315",
   appId: "1:253408264315:web:1246e65a3c2ed70c4362de"
@@ -20,19 +21,54 @@ const items = [
   { name: "★ Керамбит | Золото", chance: 1, color: "#ffca2d", rarity: "Чрезвычайно редкое" }
 ];
 
-let currentBalance = 1000;
+let currentBalance = 0;
+let currentUser = null;
 
-// Логика кнопки открытия
+// 1. СЛУШАТЕЛЬ АВТОРИЗАЦИИ (Загрузка данных при входе)
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        currentUser = user;
+        document.getElementById('login-btn').style.display = 'none';
+        document.getElementById('balance-display').style.display = 'block';
+        
+        // Загружаем баланс из базы данных
+        db.ref('users/' + user.uid).on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                currentBalance = data.balance;
+            } else {
+                // Если новый игрок — даем бонус 1000$
+                currentBalance = 1000;
+                saveData();
+            }
+            updateUIBalance();
+        });
+    }
+});
+
+// 2. ФУНКЦИЯ СОХРАНЕНИЯ
+function saveData() {
+    if (currentUser) {
+        db.ref('users/' + currentUser.uid).set({
+            balance: currentBalance,
+            email: currentUser.email
+        });
+    }
+}
+
+// 3. ЛОГИКА ОТКРЫТИЯ
 document.getElementById('open-btn').onclick = () => {
+    if (!currentUser) {
+        alert("Сначала войди через Google!");
+        return;
+    }
     if (currentBalance < 50) {
-        alert("Пополни баланс!");
+        alert("Баланс пуст! Пополни его (скоро сделаем кнопку)");
         return;
     }
 
     currentBalance -= 50;
-    updateUIBalance();
-
-    // Рандом
+    
     let rand = Math.random() * 100;
     let cumulative = 0;
     let dropped = items[0];
@@ -48,23 +84,18 @@ document.getElementById('open-btn').onclick = () => {
     // Показываем результат
     document.getElementById('item-name').innerText = dropped.name;
     document.getElementById('item-name').style.color = dropped.color;
-    document.getElementById('item-rarity-text').innerText = dropped.rarity;
     document.getElementById('item-rarity-light').style.background = dropped.color;
+    
+    // Сохраняем новый баланс в облако
+    saveData();
 };
 
 // Вход через Google
 document.getElementById('login-btn').onclick = () => {
     const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).then((result) => {
-        const user = result.user;
-        document.getElementById('login-btn').style.display = 'none';
-        document.getElementById('balance-display').style.display = 'block';
-        // Здесь можно подтянуть баланс из базы данных
-    });
+    auth.signInWithPopup(provider);
 };
 
 function updateUIBalance() {
     document.getElementById('balance-amount').innerText = currentBalance;
 }
-
-updateUIBalance();
