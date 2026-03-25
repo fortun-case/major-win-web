@@ -2,18 +2,34 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>TeamPlay Cases</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Major Win — Симулятор Кейсов</title>
     <link rel="stylesheet" href="style.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
-<body style="background: #000; color: #fff; text-align: center; font-family: sans-serif;">
-    
-    <h1>Case Opener (Beta)</h1>
-    <div id="balance">Баланс: $1000</div>
-    
-    <div class="case-container" style="margin: 50px auto; border: 2px solid #333; width: 300px; padding: 20px;">
-        <img src="https://via.placeholder.com/150" id="item-img" alt="Item">
-        <h3 id="item-name">Нажми, чтобы открыть!</h3>
-        <button id="open-btn" style="padding: 10px 20px; cursor: pointer;">Открыть за $50</button>
+<body>
+
+    <div class="header">
+        <h1>MAJOR <span class="gold">WIN</span></h1>
+        <div id="user-info">
+            <button id="login-btn">Войти через Google</button>
+            <span id="balance-display" style="display:none;">Баланс: <span id="balance-amount">0</span>$</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="case-card">
+            <div class="item-display">
+                <div id="item-rarity-light"></div>
+                <img src="https://via.placeholder.com/200x150/111/fff?text=Major+Win" id="item-img" alt="Item">
+            </div>
+            <h2 id="item-name">Испытай удачу!</h2>
+            <p id="item-rarity-text">Нажми на кнопку ниже</p>
+            <button id="open-btn" class="main-button">Открыть за 50$</button>
+        </div>
     </div>
 
     <script src="app.js"></script>
