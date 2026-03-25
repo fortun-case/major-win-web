@@ -3,22 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAJOR WIN | CASE BATTLE, UPGRADE & CONTRACTS</title>
+    <title>Major Win | Кейс-Батл и Апгрейды CS2</title>
+    
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
     <style>
-        body { background: #060709; color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .bg-dark-card { background: #0f111a; border: 1px solid #1f222e; }
-        .item-glow-Gold { border: 1px border #eab308; box-shadow: 0 0 15px rgba(234,179,8,0.2); }
-        .item-glow-Red { border: 1px border #dc2626; box-shadow: 0 0 15px rgba(220,38,38,0.2); }
-        .tab-active { color: #eab308; border-bottom: 2px solid #eab308; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        .anim-pulse { animation: pulse 1.5s infinite; }
+        @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&display=swap');
+        
+        body { background: #0b0e14; color: #ced4da; font-family: 'Exo 2', sans-serif; margin: 0; overflow-x: hidden; }
+        
+        /* Стилизация под Case-Battle */
+        .cb-bg-dark { background-color: #0b0e14; }
+        .cb-bg-card { background-color: #12161e; border: 1px solid #1c212b; }
+        .cb-border { border: 1px solid #1c212b; }
+        .cb-text-accent { color: #f8b400; }
+        .cb-bg-accent { background-color: #f8b400; color: #000; }
+        .cb-btn { transition: all 0.2s; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        .cb-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+
+        /* Кастомный скроллбар */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: #0b0e14; }
+        ::-webkit-scrollbar-thumb { background: #1c212b; rounded: 2px; }
+
+        /* Анимация пульсации (как в оригинале) */
+        @keyframes cb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .cb-anim-pulse { animation: cb-pulse 2s infinite; }
     </style>
 </head>
 <body>
@@ -27,6 +44,7 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
+        // --- ТВОЯ КОНФИГУРАЦИЯ FIREBASE (УЖЕ ВСТАВЛЕНА) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAZxG500x9pmjg1sy6iJXMKrUMhZ2TFFCk",
             authDomain: "major-win.firebaseapp.com",
@@ -41,26 +59,35 @@
         const db = firebase.firestore();
         const provider = new firebase.auth.GoogleAuthProvider();
 
-        const ITEMS_LIST = [
-            { id: 1, name: "Karambit | Lore", price: 8500, rarity: "Gold" },
-            { id: 2, name: "M4A4 | Howl", price: 4200, rarity: "Red" },
-            { id: 3, name: "AK-47 | Fire Serpent", price: 1500, rarity: "Red" },
-            { id: 4, name: "AWP | Oni Taiji", price: 750, rarity: "Pink" },
-            { id: 5, name: "USP-S | Printstream", price: 180, rarity: "Pink" },
-            { id: 6, name: "Glock | Neo-Noir", price: 45, rarity: "Purple" },
-            { id: 7, name: "Desert Eagle | Code Red", price: 25, rarity: "Purple" },
-            { id: 8, name: "P250 | Sand Dune", price: 3, rarity: "Blue" }
+        // База предметов (расширенная для имитации Кейс-Батла)
+        const ITEMS_DB = [
+            { id: 1, name: "Karambit | Lore", price: 8200, rarity: "Gold", img: "🔪" },
+            { id: 2, name: "M4A4 | Howl", price: 3800, rarity: "Red", img: "🔫" },
+            { id: 3, name: "AK-47 | Fire Serpent", price: 1400, rarity: "Red", img: "🔫" },
+            { id: 4, name: "AWP | Oni Taiji", price: 680, rarity: "Pink", img: "🔫" },
+            { id: 5, name: "USP-S | Printstream", price: 160, rarity: "Pink", img: "🔫" },
+            { id: 6, name: "Glock | Neo-Noir", price: 42, rarity: "Purple", img: "🔫" },
+            { id: 7, name: "P250 | Sand Dune", price: 3, rarity: "Blue", img: "🔫" }
+        ];
+
+        // Имитация Кейсов
+        const CASES_DB = [
+            { id: 101, name: "Дункан Высокий", price: 29, img: "📦", items: [7,6,5] },
+            { id: 102, name: "Лионель Баратеон", price: 249, img: "📦", items: [6,5,4] },
+            { id: 103, name: "Пламя и Пепел", price: 1499, img: "📦", items: [5,4,3,2] },
+            { id: 104, name: "Королевский", price: 4999, img: "📦", items: [3,2,1] },
         ];
 
         function App() {
             const [user, setUser] = useState(null);
-            const [profile, setProfile] = useState({ balance: 0, inventory: [], nickname: "" });
-            const [tab, setTab] = useState('cases'); 
-            const [isProcessing, setIsProcessing] = useState(false);
+            const [profile, setProfile] = useState({ balance: 0, inventory: [], nickname: "", totalOpened: 0 });
+            const [activeTab, setActiveTab] = useState('cases'); // cases, upgrade, contracts
+            const [isSpinning, setIsSpinning] = useState(false);
+            const [currentDrop, setCurrentDrop] = useState(null);
 
-            // Состояния игр
+            // Состояния для игр
             const [upgSource, setUpgSource] = useState(null);
-            const [upgTarget, setUpgTarget] = useState(ITEMS_LIST[0]);
+            const [upgTarget, setUpgTarget] = useState(ITEMS_DB[0]);
             const [contractItems, setContractItems] = useState([]);
 
             useEffect(() => {
@@ -69,9 +96,10 @@
                         setUser(u);
                         const docRef = db.collection("users").doc(u.uid);
                         const snap = await docRef.get();
-                        if (snap.exists) setProfile(snap.data());
-                        else {
-                            const init = { balance: 5000, inventory: [], nickname: u.displayName };
+                        if (snap.exists) {
+                            setProfile(snap.data());
+                        } else {
+                            const init = { balance: 10000, inventory: [], nickname: u.displayName || "Major_Player", totalOpened: 0 };
                             await docRef.set(init);
                             setProfile(init);
                         }
@@ -80,6 +108,7 @@
             }, []);
 
             const sync = async (data) => {
+                if (!user) return;
                 await db.collection("users").doc(user.uid).update(data);
                 setProfile(prev => ({ ...prev, ...data }));
             };
@@ -91,157 +120,143 @@
                 setContractItems(prev => prev.filter(i => i.instId !== instId));
             };
 
-            const openCase = () => {
-                if (profile.balance < 250 || isProcessing) return;
-                setIsProcessing(true);
-                setTimeout(() => {
-                    const drop = { ...ITEMS_LIST[Math.floor(Math.random() * ITEMS_LIST.length)], instId: Date.now() };
-                    sync({ balance: profile.balance - 250, inventory: [...profile.inventory, drop] });
-                    setIsProcessing(false);
-                }, 800);
-            };
+            const openCase = (caseId, price) => {
+                if (profile.balance < price || isSpinning) return;
+                setIsSpinning(true);
+                setCurrentDrop(null);
 
-            const handleUpgrade = () => {
-                if (!upgSource || isProcessing) return;
-                setIsProcessing(true);
-                const chance = Math.min((upgSource.price / upgTarget.price) * 100, 95);
-                const win = Math.random() * 100 <= chance;
-                setTimeout(() => {
-                    let newInv = profile.inventory.filter(i => i.instId !== upgSource.instId);
-                    if (win) newInv.push({ ...upgTarget, instId: Date.now() });
-                    sync({ inventory: newInv });
-                    setUpgSource(null);
-                    setIsProcessing(false);
-                    alert(win ? "🔥 УСПЕХ!" : "💀 ПРЕДМЕТ СГОРЕЛ");
-                }, 1200);
-            };
+                const selectedCase = CASES_DB.find(c => c.id === caseId);
+                const possibleDropIds = selectedCase.items;
+                const dropId = possibleDropIds[Math.floor(Math.random() * possibleDropIds.length)];
+                const drop = { ...ITEMS_DB.find(i => i.id === dropId), instId: Date.now() };
 
-            const handleContract = () => {
-                if (contractItems.length < 3 || isProcessing) return;
-                setIsProcessing(true);
                 setTimeout(() => {
-                    const avgPrice = contractItems.reduce((sum, item) => sum + item.price, 0) / 3;
-                    const targetPrice = avgPrice * 1.5;
-                    const possibleDrops = ITEMS_LIST.filter(i => i.price >= targetPrice) || [ITEMS_LIST[0]];
-                    const drop = { ...possibleDrops[Math.floor(Math.random() * possibleDrops.length)], instId: Date.now() };
-                    
-                    const contractIds = contractItems.map(i => i.instId);
-                    const newInv = profile.inventory.filter(i => !contractIds.includes(i.instId));
-                    newInv.push(drop);
-
-                    sync({ inventory: newInv });
-                    setContractItems([]);
-                    setIsProcessing(false);
-                    alert("Контракт выполнен! Проверь инвентарь.");
+                    sync({ 
+                        balance: profile.balance - price, 
+                        inventory: [...profile.inventory, drop],
+                        totalOpened: profile.totalOpened + 1
+                    });
+                    setCurrentDrop(drop);
+                    setIsSpinning(false);
                 }, 1500);
             };
 
-            if (!user) return <div className="h-screen flex items-center justify-center"><button onClick={() => auth.signInWithPopup(provider)} className="bg-yellow-500 text-black font-bold px-10 py-4 rounded-full uppercase tracking-tighter shadow-lg shadow-yellow-500/20">Войти через Google</button></div>;
+            const sellAllInventory = () => {
+                const totalValue = profile.inventory.reduce((sum, item) => sum + item.price, 0);
+                sync({ balance: profile.balance + totalValue, inventory: [] });
+                alert(`Продано ${profile.inventory.length} предметов на сумму ${totalValue.toFixed(2)}$`);
+            };
+
+            if (!user) return (
+                <div className="h-screen flex flex-col items-center justify-center space-y-6">
+                    <h1 className="text-6xl font-black text-yellow-500 tracking-tighter uppercase">MAJOR WIN</h1>
+                    <button onClick={() => auth.signInWithPopup(provider)} className="cb-btn cb-bg-accent px-12 py-4 rounded-xl text-xl">
+                        Войти через Google
+                    </button>
+                </div>
+            );
 
             return (
-                <div className="max-w-6xl mx-auto p-4 lg:p-10">
-                    <header className="flex flex-col md:flex-row justify-between items-center bg-dark-card p-6 rounded-3xl border border-gray-800 mb-8">
-                        <div className="flex items-center gap-4 mb-4 md:mb-0">
-                            <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center text-black font-black text-xl">M</div>
-                            <div>
-                                <h1 className="text-xl font-black text-yellow-500 uppercase">Major Win</h1>
-                                <p className="text-xs text-gray-500">{profile.nickname}</p>
+                <div className="flex min-h-screen">
+                    {/* ЛЕВОЕ МЕНЮ (СПИСОК ПРЕДМЕТОВ) */}
+                    <aside className="w-64 cb-bg-card p-4 border-r border-gray-800 flex flex-col space-y-2 text-sm">
+                        <h3 className="text-gray-600 font-bold uppercase mb-4 text-xs tracking-widest">Major Drops</h3>
+                        {ITEMS_DB.slice(0, 6).map(item => (
+                            <div key={item.id} className="flex items-center gap-3 p-2 rounded hover:bg-gray-800/30">
+                                <span className="text-2xl">{item.img}</span>
+                                <div>
+                                    <p className="font-bold text-gray-200 truncate w-40">{item.name}</p>
+                                    <p className="text-green-500 font-bold">{item.price}$</p>
+                                </div>
                             </div>
-                        </div>
-                        <div className="text-center md:text-right">
-                            <p className="text-3xl font-black text-green-400 font-mono tracking-tighter">{profile.balance.toFixed(2)} $</p>
-                            <button onClick={() => auth.signOut()} className="text-[10px] text-gray-600 hover:text-red-500 uppercase font-bold transition">Выйти из профиля</button>
-                        </div>
-                    </header>
-
-                    <nav className="flex justify-center gap-10 mb-12 uppercase text-xs font-black tracking-[0.2em]">
-                        {['cases', 'upgrade', 'contracts'].map(t => (
-                            <button key={t} onClick={() => setTab(t)} className={`pb-2 transition-all ${tab === t ? 'tab-active' : 'text-gray-600 hover:text-white'}`}>
-                                {t === 'cases' ? 'Кейсы' : t === 'upgrade' ? 'Апгрейд' : 'Контракты'}
-                            </button>
                         ))}
-                    </nav>
+                    </aside>
 
-                    {/* CASES */}
-                    {tab === 'cases' && (
-                        <div className="flex flex-col items-center py-20 bg-dark-card rounded-[3rem] border-2 border-dashed border-gray-800 shadow-2xl">
-                            <div className={`text-9xl mb-12 drop-shadow-2xl ${isProcessing ? 'anim-pulse scale-110' : ''}`}>📦</div>
-                            <button onClick={openCase} disabled={isProcessing} className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-16 py-5 rounded-2xl font-black text-2xl uppercase hover:scale-105 transition shadow-xl shadow-yellow-500/20">
-                                {isProcessing ? 'Открываем...' : 'Открыть (250$)'}
-                            </button>
-                        </div>
-                    )}
-
-                    {/* UPGRADE */}
-                    {tab === 'upgrade' && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-dark-card p-8 rounded-3xl items-center">
-                            <div className="h-64 border-2 border-dashed border-gray-800 rounded-2xl flex flex-col items-center justify-center p-4">
-                                <span className="text-[10px] text-gray-600 mb-4 uppercase">Твой предмет</span>
-                                {upgSource ? (
-                                    <div className={`w-full p-4 rounded-xl bg-black text-center item-glow-${upgSource.rarity}`}>
-                                        <p className="font-bold text-sm">{upgSource.name}</p>
-                                        <p className="text-green-400 font-bold mt-2">{upgSource.price}$</p>
-                                    </div>
-                                ) : <p className="text-gray-700 text-sm">Выбери из инвентаря</p>}
+                    {/* ОСНОВНОЙ КОНТЕНТ */}
+                    <div className="flex-1">
+                        {/* ШАПКА */}
+                        <header className="flex justify-between items-center p-6 cb-bg-card border-b border-gray-800">
+                            <div className="flex items-center gap-10 font-bold uppercase text-sm">
+                                <span className="text-2xl font-black cb-text-accent">MW</span>
+                                <button onClick={() => setActiveTab('cases')} className={activeTab === 'cases' ? 'cb-text-accent' : 'text-gray-500'}>Кейсы</button>
+                                <button onClick={() => setActiveTab('upgrade')} className={activeTab === 'upgrade' ? 'cb-text-accent' : 'text-gray-500'}>Апгрейд</button>
+                                <button onClick={() => setActiveTab('contracts')} className={activeTab === 'contracts' ? 'cb-text-accent' : 'text-gray-500'}>Контракты</button>
                             </div>
-                            <div className="text-center">
-                                <div className="text-5xl font-black text-yellow-500 mb-6">{upgSource ? ((upgSource.price / upgTarget.price)*100).toFixed(1) : '0'}%</div>
-                                <button onClick={handleUpgrade} disabled={!upgSource || isProcessing} className="w-full bg-yellow-500 text-black py-4 rounded-xl font-black uppercase hover:bg-yellow-400 transition">Апгрейд</button>
-                            </div>
-                            <div className="h-64 bg-black border border-gray-800 rounded-2xl flex flex-col items-center justify-center p-4">
-                                <span className="text-[10px] text-gray-600 mb-2 uppercase">Цель</span>
-                                <select onChange={(e) => setUpgTarget(ITEMS_LIST.find(i => i.id == e.target.value))} className="bg-transparent text-white text-xs mb-4 outline-none border-b border-gray-700">
-                                    {ITEMS_LIST.filter(i => i.price > (upgSource?.price || 0)).map(i => <option key={i.id} value={i.id}>{i.name} ({i.price}$)</option>)}
-                                </select>
-                                <div className={`w-full p-4 rounded-xl bg-[#0d1117] text-center item-glow-${upgTarget.rarity}`}>
-                                    <p className="font-bold text-sm">{upgTarget.name}</p>
-                                    <p className="text-green-400 font-bold mt-2">{upgTarget.price}$</p>
+                            <div className="flex items-center gap-6">
+                                <div className="text-right">
+                                    <p className="font-mono text-xl font-bold text-green-400">{profile.balance.toFixed(2)} $</p>
+                                    <p className="text-xs text-gray-500 cb-anim-pulse">На счете</p>
                                 </div>
+                                <img src={user.photoURL} alt="Ava" className="w-10 h-10 rounded-full border border-gray-700" />
+                                <button onClick={() => auth.signOut()} className="text-xs text-gray-600 hover:text-red-500">Выход</button>
                             </div>
-                        </div>
-                    )}
+                        </header>
 
-                    {/* CONTRACTS */}
-                    {tab === 'contracts' && (
-                        <div className="bg-dark-card p-10 rounded-3xl text-center">
-                            <h2 className="text-xl font-black text-yellow-500 mb-8 uppercase italic tracking-tighter">Сборочный Цех (3 предмета)</h2>
-                            <div className="flex flex-wrap justify-center gap-4 mb-10">
-                                {[0,1,2].map(i => (
-                                    <div key={i} className="w-32 h-40 border-2 border-dashed border-gray-800 rounded-2xl flex items-center justify-center overflow-hidden">
-                                        {contractItems[i] ? (
-                                            <div className="p-2 text-[10px] font-bold text-center">
-                                                <p className="mb-2">{contractItems[i].name}</p>
-                                                <button onClick={() => setContractItems(prev => prev.filter((_, idx) => idx !== i))} className="text-red-500">Убрать</button>
+                        <main className="p-6 md:p-10 space-y-10">
+                            {/* БЛОК ПРОФИЛЯ */}
+                            <section className="cb-bg-card p-8 rounded-3xl grid grid-cols-1 md:grid-cols-4 gap-6 items-center border border-gray-800/50 shadow-inner">
+                                <div className="flex items-center gap-4">
+                                    <img src={user.photoURL} className="w-16 h-16 rounded-full border-2 border-yellow-500" />
+                                    <div>
+                                        <h2 className="text-xl font-black text-white">{profile.nickname}</h2>
+                                        <p className="text-xs text-gray-500">Major Win №1</p>
+                                    </div>
+                                </div>
+                                <div className="cb-bg-dark p-4 rounded-xl text-center border border-gray-800">
+                                    <p className="text-3xl font-black text-white">{profile.totalOpened}</p>
+                                    <p className="text-xs text-gray-600 uppercase">Кейсов открыто</p>
+                                </div>
+                                <div className="cb-bg-dark p-4 rounded-xl text-center border border-gray-800">
+                                    <p className="text-3xl font-black text-white">{profile.inventory.length}</p>
+                                    <p className="text-xs text-gray-600 uppercase">Предметов в арсенале</p>
+                                </div>
+                                <div className="cb-bg-dark p-4 rounded-xl text-center border border-yellow-900">
+                                    <p className="text-3xl font-black cb-text-accent">14</p>
+                                    <p className="text-xs text-gray-600 uppercase cb-anim-pulse">Major Уровень</p>
+                                </div>
+                            </section>
+
+                            {/* ВКЛАДКА КЕЙСОВ */}
+                            {activeTab === 'cases' && (
+                                <section>
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="font-black uppercase tracking-widest text-gray-600">Серийные Кейсы</h3>
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                        {CASES_DB.map(c => (
+                                            <div key={c.id} className="cb-bg-card p-6 rounded-2xl text-center flex flex-col items-center space-y-4 hover:border-yellow-500/30 transition-all group relative overflow-hidden">
+                                                <div className={`text-7xl mb-4 group-hover:scale-110 transition ${isSpinning ? 'cb-anim-pulse' : ''}`}>{c.img}</div>
+                                                <h4 className="font-bold text-gray-200 h-10 leading-tight">{c.name}</h4>
+                                                <button onClick={() => openCase(c.id, c.price)} disabled={isSpinning} className="cb-btn cb-bg-dark border border-yellow-500 cb-text-accent w-full py-3 rounded-xl">
+                                                    {isSpinning ? "Удача..." : `${c.price} $`}
+                                                </button>
                                             </div>
-                                        ) : <span className="text-gray-800 text-4xl font-black">?</span>}
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
-                            <button onClick={handleContract} disabled={contractItems.length < 3 || isProcessing} className="bg-white text-black px-12 py-4 rounded-xl font-bold uppercase disabled:opacity-20 transition">Подписать контракт</button>
-                        </div>
-                    )}
+                                </section>
+                            )}
 
-                    {/* INVENTORY */}
-                    <div className="mt-16">
-                        <div className="flex justify-between items-center mb-8 border-l-4 border-yellow-500 pl-4">
-                            <h3 className="font-black uppercase text-sm tracking-widest text-gray-400">Твой Арсенал</h3>
-                            <span className="text-xs font-mono text-gray-600">{profile.inventory.length} предметов</span>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
-                            {profile.inventory.slice().reverse().map((item) => (
-                                <div key={item.instId} className={`bg-dark-card p-4 rounded-2xl relative transition-all hover:-translate-y-1 item-glow-${item.rarity}`}>
-                                    <p className="text-[10px] font-bold h-8 overflow-hidden leading-tight text-gray-200">{item.name}</p>
-                                    <p className="text-green-500 font-black mt-2 text-sm">{item.price}$</p>
-                                    <div className="mt-3 grid grid-cols-1 gap-1">
-                                        <button onClick={() => sellItem(item.instId, item.price)} className="text-[9px] bg-red-900/10 text-red-500 py-1 rounded-lg hover:bg-red-500 hover:text-white transition uppercase font-bold">Продать</button>
-                                        {tab === 'upgrade' && <button onClick={() => setUpgSource(item)} className="text-[9px] bg-blue-900/10 text-blue-500 py-1 rounded-lg hover:bg-blue-500 hover:text-white transition uppercase font-bold">В апгрейд</button>}
-                                        {tab === 'contracts' && !contractItems.find(ci => ci.instId === item.instId) && contractItems.length < 3 && (
-                                            <button onClick={() => setContractItems(prev => [...prev, item])} className="text-[9px] bg-green-900/10 text-green-500 py-1 rounded-lg hover:bg-green-500 hover:text-white transition uppercase font-bold">В контракт</button>
-                                        )}
-                                    </div>
+                            {/* ИНВЕНТАРЬ (ВСЕГДА ПОКАЗЫВАЕМ ВНИЗУ) */}
+                            <section className="mt-12">
+                                <div className="flex justify-between items-center mb-6 border-l-4 border-yellow-500 pl-4">
+                                    <h3 className="font-black uppercase text-gray-400">Ваши предметы</h3>
+                                    {profile.inventory.length > 0 && (
+                                        <button onClick={sellAllInventory} className="text-xs text-red-500 hover:text-red-400 font-bold uppercase">Продать всё</button>
+                                    )}
                                 </div>
-                            ))}
-                        </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                                    {profile.inventory.slice().reverse().map((item) => (
+                                        <div key={item.instId} className={`cb-bg-card p-4 rounded-xl relative transition-all hover:-translate-y-1 hover:border-gray-600 border border-gray-800`}>
+                                            <p className="text-[10px] font-bold h-8 overflow-hidden leading-tight text-gray-200">{item.name}</p>
+                                            <p className="text-green-400 font-black mt-2 text-sm">{item.price}$</p>
+                                            <div className="mt-3 flex gap-1">
+                                                <button onClick={() => sellItem(item.instId, item.price)} className="text-[9px] bg-red-900/10 text-red-500 py-1 rounded-lg flex-1 font-bold">Продать</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        </main>
                     </div>
                 </div>
             );
