@@ -3,48 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Major Win | Кейс-Батл и Апгрейды CS2</title>
+    <title>MAJOR WIN | Roulette Edition</title>
     
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&display=swap');
         body { background: #0b0e14; color: #ced4da; font-family: 'Exo 2', sans-serif; margin: 0; overflow-x: hidden; }
         
-        /* Стилизация под Case-Battle */
-        .cb-bg-dark { background-color: #0b0e14; }
-        .cb-bg-card { background-color: #12161e; border: 1px solid #1c212b; }
-        .cb-border { border: 1px solid #1c212b; }
-        .cb-text-accent { color: #f8b400; }
-        .cb-bg-accent { background-color: #f8b400; color: #000; }
-        .cb-btn { transition: all 0.2s; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-        .cb-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        /* Стили редкости */
+        .rarity-Gold { border-bottom: 3px solid #eab308; }
+        .rarity-Red { border-bottom: 3px solid #eb4b4b; }
+        .rarity-Pink { border-bottom: 3px solid #d32ee6; }
+        .rarity-Purple { border-bottom: 3px solid #8847ff; }
+        .rarity-Blue { border-bottom: 3px solid #4b69ff; }
 
-        /* Кастомный скроллбар */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: #0b0e14; }
-        ::-webkit-scrollbar-thumb { background: #1c212b; rounded: 2px; }
+        /* РУЛЕТКА */
+        .roulette-container {
+            width: 100%;
+            height: 160px;
+            background: #12161e;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #1c212b;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .roulette-line {
+            position: absolute;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: #f8b400;
+            z-index: 10;
+            box-shadow: 0 0 15px #f8b400;
+        }
+        .roulette-tape {
+            display: flex;
+            transition: transform 5s cubic-bezier(0.15, 0, 0.05, 1);
+            will-change: transform;
+        }
+        .roulette-item {
+            min-width: 140px;
+            height: 130px;
+            margin: 0 5px;
+            background: #0b0e14;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            border-bottom: 3px solid transparent;
+        }
 
-        /* Анимация пульсации (как в оригинале) */
-        @keyframes cb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        .cb-anim-pulse { animation: cb-pulse 2s infinite; }
+        .main-wrapper { margin-left: 70px; }
+        .cb-sidebar { width: 70px; background: #12161e; border-right: 1px solid #1c212b; height: 100vh; position: fixed; left: 0; top: 0; z-index: 50; }
+        .xp-bar { height: 4px; background: #1c212b; border-radius: 2px; overflow: hidden; }
+        .xp-progress { height: 100%; background: #f8b400; transition: width 0.5s ease; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
-        // --- ТВОЯ КОНФИГУРАЦИЯ FIREBASE (УЖЕ ВСТАВЛЕНА) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAZxG500x9pmjg1sy6iJXMKrUMhZ2TFFCk",
             authDomain: "major-win.firebaseapp.com",
@@ -59,203 +89,150 @@
         const db = firebase.firestore();
         const provider = new firebase.auth.GoogleAuthProvider();
 
-        // База предметов (расширенная для имитации Кейс-Батла)
         const ITEMS_DB = [
-            { id: 1, name: "Karambit | Lore", price: 8200, rarity: "Gold", img: "🔪" },
-            { id: 2, name: "M4A4 | Howl", price: 3800, rarity: "Red", img: "🔫" },
-            { id: 3, name: "AK-47 | Fire Serpent", price: 1400, rarity: "Red", img: "🔫" },
-            { id: 4, name: "AWP | Oni Taiji", price: 680, rarity: "Pink", img: "🔫" },
-            { id: 5, name: "USP-S | Printstream", price: 160, rarity: "Pink", img: "🔫" },
-            { id: 6, name: "Glock | Neo-Noir", price: 42, rarity: "Purple", img: "🔫" },
-            { id: 7, name: "P250 | Sand Dune", price: 3, rarity: "Blue", img: "🔫" }
+            { id: 1, name: "M9 Bayonet | Doppler", price: 1200, rarity: "Gold", icon: "🔪" },
+            { id: 2, name: "AWP | Dragon Lore", price: 8500, rarity: "Gold", icon: "🔫" },
+            { id: 3, name: "AK-47 | Fire Serpent", price: 1400, rarity: "Red", icon: "🔫" },
+            { id: 4, name: "M4A4 | Howl", price: 4200, rarity: "Red", icon: "🔫" },
+            { id: 5, name: "USP-S | Kill Confirmed", price: 120, rarity: "Pink", icon: "🔫" },
+            { id: 6, name: "Glock | Water Elemental", price: 15, rarity: "Purple", icon: "🔫" },
+            { id: 7, name: "P250 | Sand Dune", price: 0.5, rarity: "Blue", icon: "🔫" }
         ];
 
-        // Имитация Кейсов
-        const CASES_DB = [
-            { id: 101, name: "Дункан Высокий", price: 29, img: "📦", items: [7,6,5] },
-            { id: 102, name: "Лионель Баратеон", price: 249, img: "📦", items: [6,5,4] },
-            { id: 103, name: "Пламя и Пепел", price: 1499, img: "📦", items: [5,4,3,2] },
-            { id: 104, name: "Королевский", price: 4999, img: "📦", items: [3,2,1] },
+        const CASES = [
+            { id: 'c1', name: 'Дункан Высокий', price: 29, items: [6, 7] },
+            { id: 'c2', name: 'Лионель Баратеон', price: 249, items: [5, 6] },
+            { id: 'c3', name: 'Пламя и Пепел', price: 1499, items: [3, 4, 5] },
+            { id: 'c4', name: 'Эйгон Таргариен', price: 4999, items: [1, 2, 3] }
         ];
 
         function App() {
             const [user, setUser] = useState(null);
-            const [profile, setProfile] = useState({ balance: 0, inventory: [], nickname: "", totalOpened: 0 });
-            const [activeTab, setActiveTab] = useState('cases'); // cases, upgrade, contracts
+            const [profile, setProfile] = useState({ balance: 0, inventory: [], exp: 0, level: 1 });
             const [isSpinning, setIsSpinning] = useState(false);
-            const [currentDrop, setCurrentDrop] = useState(null);
-
-            // Состояния для игр
-            const [upgSource, setUpgSource] = useState(null);
-            const [upgTarget, setUpgTarget] = useState(ITEMS_DB[0]);
-            const [contractItems, setContractItems] = useState([]);
+            const [tape, setTape] = useState([]);
+            const [offset, setOffset] = useState(0);
+            const [winItem, setWinItem] = useState(null);
+            const tapeRef = useRef(null);
 
             useEffect(() => {
                 return auth.onAuthStateChanged(async (u) => {
                     if (u) {
                         setUser(u);
                         const docRef = db.collection("users").doc(u.uid);
-                        const snap = await docRef.get();
-                        if (snap.exists) {
-                            setProfile(snap.data());
-                        } else {
-                            const init = { balance: 10000, inventory: [], nickname: u.displayName || "Major_Player", totalOpened: 0 };
-                            await docRef.set(init);
-                            setProfile(init);
-                        }
-                    } else setUser(null);
+                        docRef.onSnapshot(snap => { if(snap.exists) setProfile(snap.data()); });
+                    }
                 });
             }, []);
 
-            const sync = async (data) => {
-                if (!user) return;
-                await db.collection("users").doc(user.uid).update(data);
-                setProfile(prev => ({ ...prev, ...data }));
-            };
-
-            const sellItem = (instId, price) => {
-                const newInv = profile.inventory.filter(i => i.instId !== instId);
-                sync({ balance: profile.balance + price, inventory: newInv });
-                if (upgSource?.instId === instId) setUpgSource(null);
-                setContractItems(prev => prev.filter(i => i.instId !== instId));
-            };
-
-            const openCase = (caseId, price) => {
-                if (profile.balance < price || isSpinning) return;
+            const startRoulette = (caseObj) => {
+                if (profile.balance < caseObj.price || isSpinning) return;
+                
+                // Генерируем ленту из 50 предметов
+                const newTape = [];
+                for(let i=0; i<50; i++) {
+                    const randomId = caseObj.items[Math.floor(Math.random() * caseObj.items.length)];
+                    newTape.push({...ITEMS_DB.find(x => x.id === randomId), tempId: i});
+                }
+                
+                const win = newTape[45]; // 46-й предмет будет выигрышным
+                setWinItem(win);
+                setTape(newTape);
                 setIsSpinning(true);
-                setCurrentDrop(null);
+                setOffset(0);
 
-                const selectedCase = CASES_DB.find(c => c.id === caseId);
-                const possibleDropIds = selectedCase.items;
-                const dropId = possibleDropIds[Math.floor(Math.random() * possibleDropIds.length)];
-                const drop = { ...ITEMS_DB.find(i => i.id === dropId), instId: Date.now() };
-
+                // Запускаем анимацию
                 setTimeout(() => {
-                    sync({ 
-                        balance: profile.balance - price, 
+                    // Рассчитываем сдвиг: (ширина предмета + margin) * индекс + центрирование
+                    const itemWidth = 150;
+                    const finalOffset = (45 * itemWidth) - (window.innerWidth / 2) + 100;
+                    setOffset(finalOffset);
+                }, 100);
+
+                // Конец анимации
+                setTimeout(async () => {
+                    const drop = {...win, instId: Date.now()};
+                    let newExp = profile.exp + 15;
+                    let newLevel = profile.level;
+                    if (newExp >= 100) { newExp = 0; newLevel++; }
+
+                    await db.collection("users").doc(user.uid).update({
+                        balance: profile.balance - caseObj.price,
                         inventory: [...profile.inventory, drop],
-                        totalOpened: profile.totalOpened + 1
+                        exp: newExp, level: newLevel
                     });
-                    setCurrentDrop(drop);
+                    
                     setIsSpinning(false);
-                }, 1500);
+                }, 5500);
             };
 
-            const sellAllInventory = () => {
-                const totalValue = profile.inventory.reduce((sum, item) => sum + item.price, 0);
-                sync({ balance: profile.balance + totalValue, inventory: [] });
-                alert(`Продано ${profile.inventory.length} предметов на сумму ${totalValue.toFixed(2)}$`);
-            };
-
-            if (!user) return (
-                <div className="h-screen flex flex-col items-center justify-center space-y-6">
-                    <h1 className="text-6xl font-black text-yellow-500 tracking-tighter uppercase">MAJOR WIN</h1>
-                    <button onClick={() => auth.signInWithPopup(provider)} className="cb-btn cb-bg-accent px-12 py-4 rounded-xl text-xl">
-                        Войти через Google
-                    </button>
-                </div>
-            );
+            if (!user) return <div className="h-screen flex items-center justify-center bg-[#0b0e14]"><button onClick={() => auth.signInWithPopup(provider)} className="bg-yellow-500 text-black px-12 py-4 rounded-xl font-bold uppercase">Войти через Google</button></div>;
 
             return (
                 <div className="flex min-h-screen">
-                    {/* ЛЕВОЕ МЕНЮ (СПИСОК ПРЕДМЕТОВ) */}
-                    <aside className="w-64 cb-bg-card p-4 border-r border-gray-800 flex flex-col space-y-2 text-sm">
-                        <h3 className="text-gray-600 font-bold uppercase mb-4 text-xs tracking-widest">Major Drops</h3>
-                        {ITEMS_DB.slice(0, 6).map(item => (
-                            <div key={item.id} className="flex items-center gap-3 p-2 rounded hover:bg-gray-800/30">
-                                <span className="text-2xl">{item.img}</span>
-                                <div>
-                                    <p className="font-bold text-gray-200 truncate w-40">{item.name}</p>
-                                    <p className="text-green-500 font-bold">{item.price}$</p>
-                                </div>
-                            </div>
-                        ))}
+                    <aside className="cb-sidebar flex flex-col items-center py-6 gap-8">
+                        <div className="text-yellow-500 font-black text-2xl">M</div>
+                        <div className="flex flex-col gap-6 text-gray-500"><span>🏠</span><span>🏆</span><span>🎁</span></div>
                     </aside>
 
-                    {/* ОСНОВНОЙ КОНТЕНТ */}
-                    <div className="flex-1">
-                        {/* ШАПКА */}
-                        <header className="flex justify-between items-center p-6 cb-bg-card border-b border-gray-800">
-                            <div className="flex items-center gap-10 font-bold uppercase text-sm">
-                                <span className="text-2xl font-black cb-text-accent">MW</span>
-                                <button onClick={() => setActiveTab('cases')} className={activeTab === 'cases' ? 'cb-text-accent' : 'text-gray-500'}>Кейсы</button>
-                                <button onClick={() => setActiveTab('upgrade')} className={activeTab === 'upgrade' ? 'cb-text-accent' : 'text-gray-500'}>Апгрейд</button>
-                                <button onClick={() => setActiveTab('contracts')} className={activeTab === 'contracts' ? 'cb-text-accent' : 'text-gray-500'}>Контракты</button>
-                            </div>
+                    <div className="main-wrapper flex-1">
+                        <header className="flex justify-between items-center p-6 bg-[#0b0e14]/80 border-b border-gray-800">
+                            <div className="text-xl font-black text-yellow-500 uppercase">Major Win</div>
                             <div className="flex items-center gap-6">
                                 <div className="text-right">
-                                    <p className="font-mono text-xl font-bold text-green-400">{profile.balance.toFixed(2)} $</p>
-                                    <p className="text-xs text-gray-500 cb-anim-pulse">На счете</p>
+                                    <p className="text-xl font-black text-green-400">{profile.balance.toFixed(2)} $</p>
+                                    <div className="xp-bar w-32 mt-1"><div className="xp-progress" style={{width: `${profile.exp}%`}}></div></div>
                                 </div>
-                                <img src={user.photoURL} alt="Ava" className="w-10 h-10 rounded-full border border-gray-700" />
-                                <button onClick={() => auth.signOut()} className="text-xs text-gray-600 hover:text-red-500">Выход</button>
+                                <img src={user.photoURL} className="w-10 h-10 rounded-full border border-gray-800" />
                             </div>
                         </header>
 
-                        <main className="p-6 md:p-10 space-y-10">
-                            {/* БЛОК ПРОФИЛЯ */}
-                            <section className="cb-bg-card p-8 rounded-3xl grid grid-cols-1 md:grid-cols-4 gap-6 items-center border border-gray-800/50 shadow-inner">
-                                <div className="flex items-center gap-4">
-                                    <img src={user.photoURL} className="w-16 h-16 rounded-full border-2 border-yellow-500" />
-                                    <div>
-                                        <h2 className="text-xl font-black text-white">{profile.nickname}</h2>
-                                        <p className="text-xs text-gray-500">Major Win №1</p>
+                        <main className="p-8">
+                            {/* РУЛЕТКА */}
+                            {tape.length > 0 && (
+                                <div className="mb-10 relative">
+                                    <div className="roulette-container">
+                                        <div className="roulette-line"></div>
+                                        <div className="roulette-tape" style={{ transform: `translateX(-${offset}px)` }}>
+                                            {tape.map(item => (
+                                                <div key={item.tempId} className={`roulette-item rarity-${item.rarity}`}>
+                                                    <span className="text-4xl">{item.icon}</span>
+                                                    <p className="text-[10px] mt-2 font-bold truncate w-24 text-center">{item.name}</p>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
+                                    {!isSpinning && winItem && <p className="text-center mt-4 text-yellow-500 font-bold">Выпало: {winItem.name}!</p>}
                                 </div>
-                                <div className="cb-bg-dark p-4 rounded-xl text-center border border-gray-800">
-                                    <p className="text-3xl font-black text-white">{profile.totalOpened}</p>
-                                    <p className="text-xs text-gray-600 uppercase">Кейсов открыто</p>
-                                </div>
-                                <div className="cb-bg-dark p-4 rounded-xl text-center border border-gray-800">
-                                    <p className="text-3xl font-black text-white">{profile.inventory.length}</p>
-                                    <p className="text-xs text-gray-600 uppercase">Предметов в арсенале</p>
-                                </div>
-                                <div className="cb-bg-dark p-4 rounded-xl text-center border border-yellow-900">
-                                    <p className="text-3xl font-black cb-text-accent">14</p>
-                                    <p className="text-xs text-gray-600 uppercase cb-anim-pulse">Major Уровень</p>
-                                </div>
-                            </section>
-
-                            {/* ВКЛАДКА КЕЙСОВ */}
-                            {activeTab === 'cases' && (
-                                <section>
-                                    <div className="flex justify-between items-center mb-6">
-                                        <h3 className="font-black uppercase tracking-widest text-gray-600">Серийные Кейсы</h3>
-                                    </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                        {CASES_DB.map(c => (
-                                            <div key={c.id} className="cb-bg-card p-6 rounded-2xl text-center flex flex-col items-center space-y-4 hover:border-yellow-500/30 transition-all group relative overflow-hidden">
-                                                <div className={`text-7xl mb-4 group-hover:scale-110 transition ${isSpinning ? 'cb-anim-pulse' : ''}`}>{c.img}</div>
-                                                <h4 className="font-bold text-gray-200 h-10 leading-tight">{c.name}</h4>
-                                                <button onClick={() => openCase(c.id, c.price)} disabled={isSpinning} className="cb-btn cb-bg-dark border border-yellow-500 cb-text-accent w-full py-3 rounded-xl">
-                                                    {isSpinning ? "Удача..." : `${c.price} $`}
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </section>
                             )}
 
-                            {/* ИНВЕНТАРЬ (ВСЕГДА ПОКАЗЫВАЕМ ВНИЗУ) */}
-                            <section className="mt-12">
-                                <div className="flex justify-between items-center mb-6 border-l-4 border-yellow-500 pl-4">
-                                    <h3 className="font-black uppercase text-gray-400">Ваши предметы</h3>
-                                    {profile.inventory.length > 0 && (
-                                        <button onClick={sellAllInventory} className="text-xs text-red-500 hover:text-red-400 font-bold uppercase">Продать всё</button>
-                                    )}
-                                </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
-                                    {profile.inventory.slice().reverse().map((item) => (
-                                        <div key={item.instId} className={`cb-bg-card p-4 rounded-xl relative transition-all hover:-translate-y-1 hover:border-gray-600 border border-gray-800`}>
-                                            <p className="text-[10px] font-bold h-8 overflow-hidden leading-tight text-gray-200">{item.name}</p>
-                                            <p className="text-green-400 font-black mt-2 text-sm">{item.price}$</p>
-                                            <div className="mt-3 flex gap-1">
-                                                <button onClick={() => sellItem(item.instId, item.price)} className="text-[9px] bg-red-900/10 text-red-500 py-1 rounded-lg flex-1 font-bold">Продать</button>
-                                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                {CASES.map(c => (
+                                    <div key={c.id} className="bg-[#12161e] p-6 rounded-2xl text-center border border-gray-800">
+                                        <div className="text-6xl mb-6">📦</div>
+                                        <h4 className="text-sm font-bold mb-4">{c.name}</h4>
+                                        <button 
+                                            onClick={() => startRoulette(c)}
+                                            disabled={isSpinning}
+                                            className="w-full bg-[#1c212b] py-3 rounded-xl text-yellow-500 font-black hover:bg-yellow-500 hover:text-black transition disabled:opacity-30"
+                                        >
+                                            {c.price} $
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mt-20">
+                                <h3 className="text-xs font-black uppercase text-gray-600 mb-6 border-l-2 border-yellow-500 pl-4 tracking-widest">Инвентарь</h3>
+                                <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
+                                    {profile.inventory.slice().reverse().map(item => (
+                                        <div key={item.instId} className={`bg-[#12161e] p-3 rounded-xl border-b-2 rarity-${item.rarity} text-center`}>
+                                            <div className="text-2xl mb-2">{item.icon}</div>
+                                            <p className="text-[9px] font-bold truncate">{item.name}</p>
                                         </div>
                                     ))}
                                 </div>
-                            </section>
+                            </div>
                         </main>
                     </div>
                 </div>
