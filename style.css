@@ -1,34 +1,138 @@
-body { background: #080808; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; text-align: center; }
-.gold { color: #ffca2d; font-weight: bold; }
+:root {
+    --bg: #0b0e12;
+    --card: #151921;
+    --accent: #ffca2d;
+    --border: #262c38;
+    --text: #ffffff;
+    --rare: #eb4b4b;
+}
 
-/* LIVE DROP */
-.live-drop-container { width: 100%; height: 60px; background: #050505; border-bottom: 1px solid #222; overflow: hidden; position: relative; }
-.live-drop-line { display: flex; gap: 10px; padding: 10px; transition: 0.5s; }
-.live-drop-item { min-width: 80px; height: 40px; background: #111; border-radius: 4px; font-size: 8px; border-bottom: 2px solid; display: flex; align-items: center; justify-content: center; animation: slideIn 0.3s ease-out; }
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+}
+
+/* LIVE FEED */
+.live-feed {
+    height: 70px;
+    background: #050608;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+.feed-track {
+    display: flex;
+    gap: 10px;
+    padding-left: 20px;
+}
+
+.feed-item {
+    min-width: 100px;
+    height: 50px;
+    background: var(--card);
+    border-radius: 6px;
+    border-bottom: 3px solid;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 9px;
+    padding: 0 10px;
+    animation: slideLeft 0.4s ease;
+}
+
+/* HEADER */
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 5%;
+    background: var(--card);
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+}
+
+.logo { font-size: 24px; font-weight: 900; letter-spacing: 2px; }
+.accent { color: var(--accent); }
+
+.user-info { display: flex; align-items: center; gap: 20px; }
+.balance-card { text-align: right; }
+.balance-card .label { display: block; font-size: 10px; color: #666; }
+.balance-card .value { font-size: 18px; color: var(--accent); font-weight: bold; }
+
+.btn-circle-profile {
+    width: 45px; height: 45px; border-radius: 50%;
+    background: var(--border); border: 1px solid #444;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
 
 /* NAV */
-.nav-menu { margin: 20px; display: flex; gap: 10px; justify-content: center; }
-.nav-menu button { background: #111; color: #666; border: 1px solid #333; padding: 10px 20px; cursor: pointer; border-radius: 5px; }
-.nav-menu button:hover { border-color: #ffca2d; color: #fff; }
-
-/* MODAL & INVENTORY */
-.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); }
-.modal-content { background: #111; margin: 5% auto; padding: 25px; width: 80%; max-width: 600px; border-radius: 15px; text-align: left; }
-.inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 20px; max-height: 400px; overflow-y: auto; }
-.inv-card { background: #1a1a1a; padding: 10px; border-radius: 8px; text-align: center; font-size: 10px; border-bottom: 3px solid; }
-.btn-action { width: 100%; padding: 5px; margin-top: 5px; font-size: 9px; cursor: pointer; border: none; border-radius: 3px; }
-.sell { background: #ff4444; color: #fff; }
-.contract { background: #22c55e; color: #fff; }
+.main-nav { display: flex; justify-content: center; gap: 10px; padding: 20px; }
+.nav-item {
+    background: transparent; border: 1px solid var(--border);
+    color: #888; padding: 12px 30px; border-radius: 8px;
+    cursor: pointer; font-weight: 600; transition: 0.3s;
+}
+.nav-item.active, .nav-item:hover {
+    background: var(--border); color: #fff; border-color: var(--accent);
+}
 
 /* ROULETTE */
-.case-card { background: #111; padding: 30px; display: inline-block; border-radius: 20px; border: 1px solid #333; margin-top: 20px; }
-.roulette-wrapper { position: relative; width: 600px; height: 120px; background: #0a0a0a; overflow: hidden; border: 2px solid #222; }
-.selector { position: absolute; left: 50%; height: 100%; width: 2px; background: red; z-index: 10; box-shadow: 0 0 10px red; }
-.roulette-line { display: flex; align-items: center; transition: 6s cubic-bezier(0.1, 0, 0, 1); }
-.case-item { min-width: 130px; height: 100px; margin: 5px; background: #151515; display: flex; align-items: center; justify-content: center; border-bottom: 4px solid; }
+.roulette-container { margin-top: 40px; }
+.roulette-viewport {
+    width: 800px; height: 160px; margin: 0 auto;
+    background: #0d1117; position: relative;
+    border-radius: 12px; border: 2px solid var(--border);
+    overflow: hidden;
+}
+.marker {
+    position: absolute; left: 50%; top: 0; width: 4px; height: 100%;
+    background: var(--accent); z-index: 5; box-shadow: 0 0 20px var(--accent);
+}
+.roulette-track { display: flex; align-items: center; height: 100%; }
 
-/* XP */
-.xp-bar-bg { width: 100%; height: 8px; background: #222; border-radius: 4px; margin-top: 5px; }
-#xp-bar-fill { height: 100%; background: #ffca2d; width: 0%; transition: 0.5s; }
+.track-card {
+    min-width: 140px; height: 120px; margin: 0 5px;
+    background: var(--card); border-radius: 8px;
+    border-bottom: 4px solid; display: flex;
+    align-items: center; justify-content: center; font-size: 11px;
+}
 
-@keyframes slideIn { from { transform: translateX(-50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.btn-glow {
+    background: linear-gradient(90deg, #ffca2d, #ff8c00);
+    border: none; padding: 18px 60px; color: #000;
+    font-weight: 800; border-radius: 12px; cursor: pointer;
+    font-size: 18px; margin-top: 30px; box-shadow: 0 0 30px rgba(255, 202, 45, 0.3);
+}
+
+/* MODAL */
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85); z-index: 1000;
+}
+.modal-card {
+    background: var(--bg); width: 90%; max-width: 650px;
+    margin: 50px auto; border-radius: 20px; padding: 30px;
+    border: 1px solid var(--border);
+}
+.close-btn { font-size: 30px; cursor: pointer; float: right; }
+
+.inventory-scroll {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 15px; max-height: 350px; overflow-y: auto; padding-right: 10px;
+}
+
+.inv-item {
+    background: var(--card); padding: 15px; border-radius: 10px;
+    border-bottom: 4px solid; text-align: center;
+}
+
+.sell-btn { 
+    background: #ff4444; border: none; color: #fff; 
+    width: 100%; margin-top: 10px; border-radius: 5px; cursor: pointer; 
+}
+
+@keyframes slideLeft { from { transform: translateX(50px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
