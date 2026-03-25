@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Major Win — Симулятор Кейсов</title>
+    <title>Major Win — Case Simulator</title>
     <link rel="stylesheet" href="style.css">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -14,21 +14,30 @@
 
     <div class="header">
         <h1>MAJOR <span class="gold">WIN</span></h1>
-        <div id="user-info">
+        <div id="auth-section">
             <button id="login-btn">Войти через Google</button>
-            <span id="balance-display" style="display:none;">Баланс: <span id="balance-amount">0</span>$</span>
+            <div id="user-info" style="display:none;">
+                <span id="user-email"></span> | 
+                <span class="gold">Баланс: <span id="balance-amount">0</span>$</span>
+            </div>
         </div>
     </div>
 
-    <div class="main-container">
+    <div class="container">
         <div class="case-card">
-            <div class="item-display">
-                <div id="item-rarity-light"></div>
-                <img src="https://via.placeholder.com/200x150/111/fff?text=Major+Win" id="item-img" alt="Item">
+            <div class="item-visual">
+                <div id="rarity-glow"></div>
+                <img src="https://via.placeholder.com/200x150/111/ffca2d?text=Major+Win" id="item-img">
             </div>
-            <h2 id="item-name">Испытай удачу!</h2>
-            <p id="item-rarity-text">Нажми на кнопку ниже</p>
-            <button id="open-btn" class="main-button">Открыть за 50$</button>
+            <h2 id="item-name">Удачи, боец!</h2>
+            <p id="item-rarity-text">Нажми "Открыть", чтобы начать</p>
+            <button id="open-btn" class="btn-main">ОТКРЫТЬ КЕЙС (50$)</button>
+        </div>
+
+        <div class="inventory-section">
+            <h3>ВАШ ИНВЕНТАРЬ</h3>
+            <div id="inventory-list" class="inventory-grid">
+                </div>
         </div>
     </div>
 
