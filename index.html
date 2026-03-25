@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Major Win | Minimalist</title>
+    <title>Major Win - Case Battle</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -11,93 +11,119 @@
 </head>
 <body>
 
-    <div class="live-feed">
-        <div id="live-drop-line" class="feed-track"></div>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <span class="pulse"></span> LIVE ЛЕНТА
+            </div>
+            <div id="live-feed" class="live-feed-list">
+                </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div class="logo-area">
+                    <h1>MAJOR <span class="accent">WIN</span></h1>
+                </div>
+                
+                <nav class="top-nav">
+                    <button class="nav-btn active" onclick="switchTab('cases')">КЕЙСЫ</button>
+                    <button class="nav-btn" onclick="switchTab('upgrades')">АПГРЕЙД</button>
+                    <button class="nav-btn" onclick="switchTab('contracts')">КОНТРАКТЫ</button>
+                </nav>
+
+                <div class="user-area">
+                    <button id="auth-btn" class="btn-steam">ВОЙТИ ЧЕРЕЗ GOOGLE</button>
+                    <div id="user-panel" class="user-panel" style="display: none;">
+                        <div class="balance-box">
+                            <span id="balance-amount">0</span> <span class="currency">₽</span>
+                        </div>
+                        <button class="profile-avatar" onclick="document.getElementById('profile-modal').style.display='flex'">
+                            ПРОФИЛЬ
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="scrollable-content">
+                
+                <section id="cases-section" class="tab-content active-tab">
+                    <div class="promo-banner">
+                        <div class="promo-text">
+                            <h3>НОВЫЙ ДОМЕН</h3>
+                            <p>У нас сменилось доменное имя, теперь мы тут!</p>
+                        </div>
+                    </div>
+
+                    <div class="section-title">СЕРИЙНЫЕ КЕЙСЫ</div>
+                    
+                    <div class="cases-grid">
+                        <div class="case-card" onclick="openCaseModal()">
+                            <div class="case-image">📦</div>
+                            <div class="case-name">Классический</div>
+                            <div class="case-price">50 ₽</div>
+                        </div>
+                        <div class="case-card" onclick="openCaseModal()">
+                            <div class="case-image">💎</div>
+                            <div class="case-name">Премиум</div>
+                            <div class="case-price">250 ₽</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="upgrades-section" class="tab-content">
+                    <div class="module-container">
+                        <h2>АПГРЕЙД ПРЕДМЕТОВ</h2>
+                        <div class="upgrade-arena">
+                            <div class="upg-slot" id="upg-from">ВЫБЕРИТЕ СКИН ИЗ ИНВЕНТАРЯ</div>
+                            <div class="upg-center">
+                                <div class="chance-circle" id="upg-chance">50%</div>
+                                <button class="btn-action" id="btn-do-upgrade">АПГРЕЙД</button>
+                            </div>
+                            <div class="upg-slot target" id="upg-to">ЦЕЛЬ</div>
+                        </div>
+                        <div class="inv-title">ВАШ ИНВЕНТАРЬ</div>
+                        <div id="upgrade-inv" class="inventory-grid"></div>
+                    </div>
+                </section>
+
+                <section id="contracts-section" class="tab-content">
+                    <div class="module-container">
+                        <h2>КОНТРАКТЫ ОБМЕНА</h2>
+                        <div class="contract-slots" id="contract-slots">
+                            <div class="c-slot"></div><div class="c-slot"></div><div class="c-slot"></div>
+                        </div>
+                        <button class="btn-action" id="btn-do-contract" disabled>СОЗДАТЬ КОНТРАКТ</button>
+                        <div class="inv-title">ВЫБЕРИТЕ 3 ПРЕДМЕТА</div>
+                        <div id="contract-inv" class="inventory-grid"></div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
     </div>
 
-    <header class="header">
-        <div class="logo">MAJOR<span class="accent">WIN</span></div>
-        <div id="auth-section">
-            <button id="login-btn" class="btn-outline">ВОЙТИ</button>
-            <div id="user-controls" class="user-panel" style="display:none;">
-                <div class="balance-display"><span id="balance-amount">0</span> $</div>
-                <button id="profile-open-btn" class="btn-text">ПРОФИЛЬ</button>
+    <div id="case-modal" class="modal">
+        <div class="modal-box">
+            <button class="close-btn" onclick="document.getElementById('case-modal').style.display='none'">×</button>
+            <h2 style="text-align: center;">ОТКРЫТИЕ КЕЙСА</h2>
+            <div class="roulette-wrapper">
+                <div class="roulette-marker"></div>
+                <div id="roulette-line" class="roulette-line"></div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn-action" id="btn-spin">ОТКРЫТЬ (50 ₽)</button>
             </div>
         </div>
-    </header>
-
-    <nav class="nav-menu">
-        <button onclick="switchTab('cases')" class="nav-link active" id="tab-cases">КЕЙСЫ</button>
-        <button onclick="switchTab('contracts')" class="nav-link" id="tab-contracts">КОНТРАКТЫ</button>
-        <button onclick="switchTab('upgrades')" class="nav-link" id="tab-upgrades">АПГРЕЙДЫ</button>
-    </nav>
-
-    <main class="content">
-        <section id="cases-section" class="tab-pane active-pane">
-            <div class="roulette-box">
-                <div class="roulette-window">
-                    <div class="roulette-marker"></div>
-                    <div id="roulette-line" class="roulette-track"></div>
-                </div>
-                <div class="roulette-info">
-                    <h2 id="item-name" class="item-name">КЕЙС "КЛАССИКА"</h2>
-                    <p class="item-price">Стоимость: 50$</p>
-                </div>
-                <button id="open-btn" class="btn-primary">ОТКРЫТЬ</button>
-            </div>
-        </section>
-
-        <section id="contracts-section" class="tab-pane">
-            <div class="module-box">
-                <h2>КОНТРАКТ ОБМЕНА</h2>
-                <p class="sub-text">Выберите 3 предмета из инвентаря</p>
-                <div id="contract-slots" class="contract-grid">
-                    <div class="slot empty"></div>
-                    <div class="slot empty"></div>
-                    <div class="slot empty"></div>
-                </div>
-                <button id="exchange-btn" class="btn-primary" disabled>ОБМЕНЯТЬ</button>
-                <div id="contract-inventory" class="inventory-grid mt-20"></div>
-            </div>
-        </section>
-
-        <section id="upgrades-section" class="tab-pane">
-            <div class="module-box">
-                <h2>АПГРЕЙД</h2>
-                <p class="sub-text">Выберите предмет для улучшения (шанс x2 стоимости)</p>
-                <div class="upgrade-layout">
-                    <div id="upg-slot-from" class="slot empty">ВАШ СКИН</div>
-                    <div class="upg-chance" id="upg-chance-display">50%</div>
-                    <div id="upg-slot-to" class="slot empty target">ЦЕЛЬ</div>
-                </div>
-                <button id="upgrade-btn" class="btn-primary" disabled>УЛУЧШИТЬ</button>
-                <div id="upgrade-inventory" class="inventory-grid mt-20"></div>
-            </div>
-        </section>
-    </main>
+    </div>
 
     <div id="profile-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="display-nickname">Загрузка...</h2>
-                <button id="close-profile" class="btn-icon">&times;</button>
-            </div>
-            
-            <div class="level-bar-container">
-                <div class="level-info">LVL <span id="user-level">1</span></div>
-                <div class="progress-track"><div id="xp-bar-fill" class="progress-fill"></div></div>
-            </div>
-
-            <div class="settings-grid">
-                <input type="text" id="nickname-input" class="input-dark" placeholder="Новый ник">
-                <button id="save-nickname-btn" class="btn-outline">СМЕНИТЬ</button>
-                
-                <input type="text" id="promo-input" class="input-dark" placeholder="Промокод">
-                <button id="apply-promo-btn" class="btn-outline">ВВОД</button>
-            </div>
-
-            <h3 class="mt-20">ИНВЕНТАРЬ</h3>
-            <div id="main-inventory" class="inventory-grid"></div>
+        <div class="modal-box">
+            <button class="close-btn" onclick="document.getElementById('profile-modal').style.display='none'">×</button>
+            <h2>ПРОФИЛЬ</h2>
+            <p>Никнейм: <strong id="profile-nick">Игрок</strong></p>
+            <div class="inv-title" style="margin-top: 20px;">ИНВЕНТАРЬ (МОЖНО ПРОДАТЬ)</div>
+            <div id="main-inv" class="inventory-grid"></div>
         </div>
     </div>
 
