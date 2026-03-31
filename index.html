@@ -24,192 +24,207 @@
             background-color: var(--bg-deep);
             color: #ffffff;
             min-height: 100vh;
-            overflow-x: hidden;
+        }
+
+        .item-img {
+            transition: transform 0.3s ease;
+            filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
+        }
+
+        .item-card:hover .item-img {
+            transform: scale(1.1) translateY(-5px);
         }
 
         .glass-card {
-            background: rgba(18, 21, 26, 0.8);
-            backdrop-filter: blur(12px);
+            background: linear-gradient(145deg, rgba(25, 28, 35, 0.9), rgba(15, 17, 22, 0.9));
             border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
+            border-radius: 20px;
         }
-
-        .premium-btn {
-            background: linear-gradient(135deg, #ffb400 0%, #ff8c00 100%);
-            color: #000;
-            font-weight: 800;
-            transition: all 0.2s ease;
-        }
-
-        .premium-btn:hover:not(:disabled) {
-            transform: scale(1.02);
-            filter: brightness(1.1);
-        }
-
-        /* Индикатор редкости */
-        .rarity-line { height: 4px; width: 100%; position: absolute; bottom: 0; left: 0; border-radius: 0 0 16px 16px; }
-        .rare { background: var(--rarity-rare); box-shadow: 0 0 15px var(--rarity-rare); }
-        .mythical { background: var(--rarity-mythical); box-shadow: 0 0 15px var(--rarity-mythical); }
-        .legendary { background: var(--rarity-legendary); box-shadow: 0 0 15px var(--rarity-legendary); }
-        .ancient { background: var(--rarity-ancient); box-shadow: 0 0 15px var(--rarity-ancient); }
-        .gold { background: var(--rarity-gold); box-shadow: 0 0 15px var(--rarity-gold); }
 
         .roulette-container {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
             mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+        }
+
+        .carousel {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            will-change: transform;
+        }
+
+        .carousel-item {
+            min-width: 180px;
+            height: 160px;
+            margin: 0 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.02);
             position: relative;
         }
+
+        .rarity-indicator {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .rare { background: var(--rarity-rare); box-shadow: 0 2px 10px var(--rarity-rare); }
+        .mythical { background: var(--rarity-mythical); box-shadow: 0 2px 10px var(--rarity-mythical); }
+        .legendary { background: var(--rarity-legendary); box-shadow: 0 2px 10px var(--rarity-legendary); }
+        .ancient { background: var(--rarity-ancient); box-shadow: 0 2px 10px var(--rarity-ancient); }
+        .gold { background: var(--rarity-gold); box-shadow: 0 2px 10px var(--rarity-gold); }
 
         .roulette-marker {
             position: absolute;
             left: 50%;
             top: 0;
             bottom: 0;
-            width: 3px;
+            width: 4px;
             background: var(--accent-gold);
-            z-index: 50;
+            z-index: 10;
             transform: translateX(-50%);
-            box-shadow: 0 0 15px var(--accent-gold);
+            box-shadow: 0 0 20px var(--accent-gold);
         }
 
-        .carousel {
-            display: flex;
-            transition: transform 7s cubic-bezier(0.1, 0, 0.1, 1);
-            will-change: transform;
+        .premium-btn {
+            background: linear-gradient(90deg, #ffb400, #ff8c00);
+            color: #000;
+            font-weight: 800;
+            transition: 0.3s;
         }
 
-        .item-card {
-            min-width: 160px;
-            height: 180px;
-            margin: 0 5px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.03);
-            border-radius: 12px;
+        .premium-btn:hover {
+            filter: brightness(1.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 180, 0, 0.3);
         }
-
-        .item-card img {
-            width: 120px;
-            height: 90px;
-            object-fit: contain;
-            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
-        }
-
-        @keyframes winPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        .win-animate { animation: winPulse 2s infinite ease-in-out; }
     </style>
 </head>
 <body>
 
-    <!-- Навигация -->
-    <header class="h-20 border-b border-white/5 flex items-center bg-black/50 sticky top-0 z-[100]">
-        <div class="container mx-auto px-6 flex justify-between items-center">
+    <!-- Header -->
+    <nav class="h-20 bg-black/40 border-b border-white/5 flex items-center px-8 justify-between sticky top-0 z-[100] backdrop-blur-md">
+        <div class="flex items-center gap-12">
             <div class="text-2xl font-black italic tracking-tighter cursor-pointer" onclick="location.reload()">
                 MAJOR<span class="text-[#ffb400]">WIN</span>
             </div>
-            
-            <div class="flex items-center gap-6">
-                <div id="balance-display" class="hidden flex flex-col items-end">
-                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Баланс</span>
-                    <span class="text-[#ffb400] font-black text-xl"><span id="user-bal">0</span> ₽</span>
-                </div>
-                <div id="auth-btns">
-                    <button onclick="openModal('modal-auth')" class="premium-btn px-6 py-2 rounded-xl text-sm">Войти</button>
-                </div>
-                <div id="user-btns" class="hidden">
-                    <button onclick="switchTab('profile')" class="bg-white/5 hover:bg-white/10 p-3 rounded-xl transition">
-                        <i class="fas fa-user"></i>
-                    </button>
-                </div>
+            <div class="hidden md:flex gap-6 text-sm font-bold uppercase text-gray-400">
+                <a href="#" onclick="switchTab('home')" class="hover:text-white transition">Магазин</a>
+                <a href="#" onclick="switchTab('profile')" class="hover:text-white transition">Инвентарь</a>
             </div>
         </div>
-    </header>
+        
+        <div id="user-info" class="flex items-center gap-4">
+            <div id="balance-area" class="hidden text-right">
+                <div class="text-[10px] text-gray-500 uppercase font-black">Баланс</div>
+                <div class="text-[#ffb400] font-black text-xl"><span id="user-balance">0</span> ₽</div>
+            </div>
+            <button id="auth-btn" onclick="openModal('modal-auth')" class="premium-btn px-6 py-2 rounded-lg text-sm">Войти</button>
+            <div id="profile-icon" class="hidden cursor-pointer bg-white/5 p-3 rounded-xl hover:bg-white/10" onclick="switchTab('profile')">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    </nav>
 
-    <main class="container mx-auto px-6 py-10">
-        <!-- Главная: Кейсы -->
+    <main class="container mx-auto px-6 py-12">
+        <!-- Home View -->
         <section id="view-home">
-            <h1 class="text-3xl font-black italic uppercase mb-8">Мистери Кейсы</h1>
-            <div id="cases-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
+            <h2 class="text-3xl font-black italic uppercase mb-10 border-l-4 border-[#ffb400] pl-4">Мистери Кейсы</h2>
+            <div id="cases-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Сюда вставятся кейсы -->
+            </div>
         </section>
 
-        <!-- Профиль -->
+        <!-- Profile View -->
         <section id="view-profile" class="hidden">
-            <div class="flex justify-between items-end mb-8">
-                <h1 class="text-3xl font-black italic uppercase">Ваш Инвентарь</h1>
-                <button onclick="switchTab('home')" class="text-gray-500 hover:text-white transition text-sm font-bold uppercase">Назад в магазин</button>
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="text-3xl font-black italic uppercase border-l-4 border-[#ffb400] pl-4">Ваш Инвентарь</h2>
+                <button onclick="switchTab('home')" class="text-xs font-bold text-gray-500 hover:text-white uppercase tracking-widest">Вернуться в магазин</button>
             </div>
-            <div id="inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+            <div id="inventory-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <!-- Предметы инвентаря -->
+            </div>
         </section>
     </main>
 
-    <!-- Модалка Кейса -->
-    <div id="modal-preview" class="fixed inset-0 z-[200] bg-black/90 hidden flex items-center justify-center p-4">
-        <div class="glass-card max-w-4xl w-full p-8 relative">
-            <button onclick="closeModal('modal-preview')" class="absolute top-6 right-6 text-gray-500 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+    <!-- Modal: Case Preview -->
+    <div id="modal-case" class="fixed inset-0 z-[200] bg-black/90 hidden flex items-center justify-center p-4">
+        <div class="glass-card max-w-4xl w-full p-8 relative overflow-hidden">
+            <button onclick="closeModal('modal-case')" class="absolute top-6 right-6 text-gray-500 hover:text-white transition"><i class="fas fa-times text-2xl"></i></button>
+            
             <div class="text-center mb-8">
-                <h2 id="p-name" class="text-3xl font-black italic uppercase">Кейс</h2>
-                <p id="p-price" class="text-[#ffb400] font-black text-xl mt-2">0 ₽</p>
+                <h2 id="case-title" class="text-3xl font-black uppercase italic">Название кейса</h2>
+                <div class="text-[#ffb400] text-xl font-black mt-1" id="case-price-tag">0 ₽</div>
             </div>
-            <div id="p-items" class="grid grid-cols-3 sm:grid-cols-5 gap-4 mb-10 max-h-[40vh] overflow-y-auto pr-2"></div>
+
+            <div id="case-items-preview" class="grid grid-cols-3 sm:grid-cols-5 gap-3 mb-10 max-h-[40vh] overflow-y-auto pr-2">
+                <!-- Предметы внутри кейса -->
+            </div>
+
             <div class="flex justify-center">
-                <button id="p-open-btn" class="premium-btn px-12 py-4 rounded-2xl text-lg shadow-lg">Открыть кейс</button>
+                <button id="btn-open-case" class="premium-btn px-16 py-4 rounded-2xl text-lg shadow-2xl">ОТКРЫТЬ КЕЙС</button>
             </div>
         </div>
     </div>
 
-    <!-- Модалка Рулетки -->
+    <!-- Modal: Roll -->
     <div id="modal-roll" class="fixed inset-0 z-[300] bg-black/95 hidden flex items-center justify-center">
-        <div class="w-full max-w-5xl px-4">
-            <div id="roll-ui">
-                <h2 class="text-center text-4xl font-black italic mb-12 animate-pulse">ОТКРЫВАЕМ...</h2>
-                <div class="roulette-container h-48 bg-white/5 rounded-2xl overflow-hidden glass-card">
+        <div class="w-full max-w-5xl px-4 text-center">
+            <div id="rolling-state">
+                <h2 class="text-4xl font-black italic mb-12 animate-pulse uppercase">Удача близко...</h2>
+                <div class="roulette-container glass-card">
                     <div class="roulette-marker"></div>
-                    <div id="carousel" class="carousel h-full items-center"></div>
+                    <div id="carousel" class="carousel"></div>
                 </div>
             </div>
 
-            <div id="result-ui" class="hidden flex flex-col items-center">
-                <div id="result-card" class="glass-card p-10 flex flex-col items-center win-animate relative overflow-hidden">
-                    <div id="result-rarity" class="rarity-line"></div>
-                    <img id="result-img" src="" class="w-64 h-48 object-contain mb-6">
-                    <h3 id="result-name" class="text-2xl font-black text-center mb-2">Название скина</h3>
-                    <p id="result-price" class="text-[#ffb400] font-black text-xl mb-8">0 ₽</p>
-                    <div class="flex gap-4 w-full">
-                        <button onclick="sellWin()" class="flex-1 py-4 bg-white/5 hover:bg-white/10 rounded-xl font-bold uppercase text-xs transition">Продать</button>
-                        <button onclick="keepWin()" class="flex-1 py-4 premium-btn rounded-xl font-bold uppercase text-xs transition">В инвентарь</button>
+            <div id="result-state" class="hidden flex flex-col items-center animate-fade-in">
+                <div class="relative p-12 glass-card inline-block border-2 border-[#ffb400]/20 win-animate">
+                    <div id="win-rarity-line" class="rarity-indicator"></div>
+                    <img id="win-img" src="" class="w-64 h-48 object-contain mb-6 drop-shadow-2xl">
+                    <h3 id="win-name" class="text-2xl font-black mb-2 uppercase">Название скина</h3>
+                    <div id="win-price" class="text-[#ffb400] text-xl font-black mb-8">0 ₽</div>
+                    
+                    <div class="flex gap-4">
+                        <button onclick="sellItem()" class="flex-1 py-4 bg-white/5 hover:bg-white/10 rounded-xl font-bold uppercase text-xs transition">Продать</button>
+                        <button onclick="keepItem()" class="flex-1 py-4 premium-btn rounded-xl font-bold uppercase text-xs transition px-8">В инвентарь</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Модалка Авторизации -->
+    <!-- Auth Modal -->
     <div id="modal-auth" class="fixed inset-0 z-[400] bg-black/80 hidden flex items-center justify-center p-4">
         <div class="glass-card max-w-md w-full p-10">
-            <h2 class="text-center text-2xl font-black mb-8 italic uppercase">Вход / Регистрация</h2>
+            <h2 class="text-2xl font-black italic uppercase text-center mb-8">Личный кабинет</h2>
             <div class="space-y-4">
-                <input id="auth-email" type="email" placeholder="Email" class="w-full bg-black/50 border border-white/10 p-4 rounded-xl outline-none focus:border-[#ffb400]">
-                <input id="auth-pass" type="password" placeholder="Пароль" class="w-full bg-black/50 border border-white/10 p-4 rounded-xl outline-none focus:border-[#ffb400]">
-                <button onclick="handleAuth()" class="premium-btn w-full py-4 rounded-xl">Продолжить</button>
-                <p class="text-center text-xs text-gray-500 px-4">Используйте любые данные, это тестовый симулятор.</p>
-                <button onclick="closeModal('modal-auth')" class="w-full text-center text-gray-600 text-xs uppercase font-bold mt-4">Отмена</button>
+                <input id="auth-email" type="email" placeholder="Email" class="w-full bg-black/40 border border-white/10 p-4 rounded-xl outline-none focus:border-[#ffb400] transition">
+                <input id="auth-pass" type="password" placeholder="Пароль" class="w-full bg-black/40 border border-white/10 p-4 rounded-xl outline-none focus:border-[#ffb400] transition">
+                <button onclick="handleAuth()" class="premium-btn w-full py-4 rounded-xl shadow-lg mt-4">ПРОДОЛЖИТЬ</button>
+                <button onclick="closeModal('modal-auth')" class="w-full text-center text-gray-500 text-xs font-bold uppercase mt-4">Закрыть</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // КОНФИГУРАЦИЯ ИЗ ВАШЕГО СКРИНШОТА
         const firebaseConfig = {
-            apiKey: "AIzaSyA-8Htang_pmMugvnekBa2s4akqHD7fGYU", // Исправленный ключ
+            apiKey: "AIzaSyA-8Htang_pmMugvnekBa2s4akqHD7fGYU",
             authDomain: "major-win-b2255.firebaseapp.com",
             projectId: "major-win-b2255",
             databaseURL: "https://major-win-b2255-default-rtdb.europe-west1.firebasedatabase.app"
@@ -219,51 +234,64 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // ИСПОЛЬЗУЕМ СТАБИЛЬНЫЕ ИЗОБРАЖЕНИЯ (Cloudinary/Imgur или игровые превью)
+        // Используем стабильный CDN для изображений
+        const IMG_BASE = "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/images/skins/";
+        
         const ITEMS = [
-            { id: 1, name: "Glock-18 | High Beam", price: 12, rarity: 'rare', img: "https://files.opskins.media/file/vgo-img/item/glock-18-high-beam-factory-new.png" },
-            { id: 2, name: "USP-S | Cyrex", price: 250, rarity: 'mythical', img: "https://files.opskins.media/file/vgo-img/item/usp-s-cyrex-factory-new.png" },
-            { id: 3, name: "M4A4 | Desolate Space", price: 850, rarity: 'legendary', img: "https://files.opskins.media/file/vgo-img/item/m4a4-desolate-space-factory-new.png" },
-            { id: 4, name: "AK-47 | Neon Revolution", price: 2100, rarity: 'ancient', img: "https://files.opskins.media/file/vgo-img/item/ak-47-neon-revolution-factory-new.png" },
-            { id: 5, name: "AWP | Asiimov", price: 12000, rarity: 'ancient', img: "https://files.opskins.media/file/vgo-img/item/awp-asiimov-field-tested.png" },
-            { id: 6, name: "Butterfly Knife | Fade", price: 185000, rarity: 'gold', img: "https://files.opskins.media/file/vgo-img/item/butterfly-knife-fade-factory-new.png" },
-            { id: 7, name: "M9 Bayonet | Doppler", price: 95000, rarity: 'gold', img: "https://files.opskins.media/file/vgo-img/item/m9-bayonet-doppler-factory-new.png" }
+            { id: 1, name: "Glock-18 | High Beam", price: 15, rarity: 'rare', img: "https://vignette.wikia.nocookie.net/cswiki/images/a/ae/Glock-18_High_Beam_Steam.png" },
+            { id: 2, name: "USP-S | Cyrex", price: 280, rarity: 'mythical', img: "https://vignette.wikia.nocookie.net/cswiki/images/4/4b/Usp-s-cyrex-ann-factory-new.png" },
+            { id: 3, name: "M4A4 | Desolate Space", price: 920, rarity: 'legendary', img: "https://vignette.wikia.nocookie.net/cswiki/images/e/e0/M4a4-desolate-space-ann-factory-new.png" },
+            { id: 4, name: "AK-47 | Neon Revolution", price: 2450, rarity: 'ancient', img: "https://vignette.wikia.nocookie.net/cswiki/images/0/07/Ak-47-neon-revolution-ann-factory-new.png" },
+            { id: 5, name: "AWP | Asiimov", price: 14200, rarity: 'ancient', img: "https://vignette.wikia.nocookie.net/cswiki/images/f/f6/Awp-asiimov-ann-field-tested.png" },
+            { id: 6, name: "Butterfly Knife | Fade", price: 195000, rarity: 'gold', img: "https://vignette.wikia.nocookie.net/cswiki/images/d/df/Butterfly_Knife_Fade_Steam.png" },
+            { id: 7, name: "M9 Bayonet | Doppler", price: 105000, rarity: 'gold', img: "https://vignette.wikia.nocookie.net/cswiki/images/d/d5/M9_Bayonet_Doppler_Steam.png" }
         ];
 
         const CASES = [
-            { id: 'c1', name: 'Стартовый набор', price: 50, items: [1, 1, 1, 2] },
-            { id: 'c2', name: 'Оружейный кейс', price: 500, items: [1, 2, 2, 3] },
-            { id: 'c3', name: 'Секретное оружие', price: 2500, items: [3, 3, 4, 5] },
-            { id: 'c4', name: 'Кейс с Ножами', price: 45000, items: [5, 6, 7] }
+            { id: 'c1', name: 'Starter Pack', price: 60, icon: 'https://vignette.wikia.nocookie.net/cswiki/images/d/d7/Crate_clutch_case.png', items: [1, 1, 1, 1, 2] },
+            { id: 'c2', name: 'Weapon Case', price: 650, icon: 'https://vignette.wikia.nocookie.net/cswiki/images/d/df/Crate_gamma_case.png', items: [1, 2, 2, 3, 4] },
+            { id: 'c3', name: 'Secret Case', price: 3200, icon: 'https://vignette.wikia.nocookie.net/cswiki/images/b/b5/Crate_spectrum_case.png', items: [3, 4, 4, 5, 5] },
+            { id: 'c4', name: 'Knife Pack', price: 55000, icon: 'https://vignette.wikia.nocookie.net/cswiki/images/d/d0/Crate_chroma_case.png', items: [5, 6, 7] }
         ];
 
         let user = null;
         let userData = { balance: 0, inventory: [] };
-        let currentWinningItem = null;
+        let winItem = null;
 
-        // AUTH
+        // Инициализация сетки кейсов
+        const casesGrid = document.getElementById('cases-grid');
+        casesGrid.innerHTML = CASES.map(c => `
+            <div onclick="openCasePreview('${c.id}')" class="glass-card p-8 flex flex-col items-center cursor-pointer group hover:border-[#ffb400]/40 transition-all duration-300">
+                <img src="${c.icon}" class="w-40 h-40 object-contain mb-6 group-hover:scale-110 transition-transform duration-500">
+                <div class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-1">${c.name}</div>
+                <div class="text-[#ffb400] font-black text-2xl">${c.price.toLocaleString()} ₽</div>
+            </div>
+        `).join('');
+
+        // Auth Logic
         window.handleAuth = async () => {
             const email = document.getElementById('auth-email').value;
             const pass = document.getElementById('auth-pass').value;
-            if(!email || pass.length < 6) return alert("Введите корректные данные (пароль от 6 символов)");
+            if(!email || pass.length < 6) return alert("Введите почту и пароль (мин. 6 симв.)");
             
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
+                closeModal('modal-auth');
             } catch(e) {
                 try {
-                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
-                    await set(ref(db, `users/${cred.user.uid}`), { balance: 10000, inventory: [] });
-                } catch(err) { alert("Ошибка: " + err.message); }
+                    const res = await createUserWithEmailAndPassword(auth, email, pass);
+                    await set(ref(db, `users/${res.user.uid}`), { balance: 15000, inventory: [] });
+                    closeModal('modal-auth');
+                } catch(err) { alert(err.message); }
             }
-            closeModal('modal-auth');
         };
 
         onAuthStateChanged(auth, u => {
             if(u) {
                 user = u;
-                document.getElementById('auth-btns').classList.add('hidden');
-                document.getElementById('balance-display').classList.remove('hidden');
-                document.getElementById('user-btns').classList.remove('hidden');
+                document.getElementById('auth-btn').classList.add('hidden');
+                document.getElementById('balance-area').classList.remove('hidden');
+                document.getElementById('profile-icon').classList.remove('hidden');
                 onValue(ref(db, `users/${u.uid}`), snap => {
                     if(snap.exists()) {
                         userData = snap.val();
@@ -271,83 +299,70 @@
                         updateUI();
                     }
                 });
-            } else {
-                user = null;
-                document.getElementById('auth-btns').classList.remove('hidden');
-                document.getElementById('balance-display').classList.add('hidden');
-                document.getElementById('user-btns').classList.add('hidden');
-                switchTab('home');
             }
         });
 
         function updateUI() {
-            document.getElementById('user-bal').innerText = Math.floor(userData.balance).toLocaleString();
+            document.getElementById('user-balance').innerText = Math.floor(userData.balance).toLocaleString();
             const invGrid = document.getElementById('inventory-grid');
-            invGrid.innerHTML = userData.inventory.map(item => `
-                <div class="glass-card p-4 relative group animate-fade">
-                    <img src="${item.img}" class="w-full h-24 object-contain">
-                    <div class="mt-2 text-[10px] font-bold text-gray-400 uppercase truncate">${item.name}</div>
-                    <div class="text-[#ffb400] font-black text-xs">${item.price.toLocaleString()} ₽</div>
-                    <div class="rarity-line ${item.rarity}"></div>
+            invGrid.innerHTML = userData.inventory.map((it, idx) => `
+                <div class="glass-card p-4 relative overflow-hidden animate-fade-in group">
+                    <div class="rarity-indicator ${it.rarity}"></div>
+                    <img src="${it.img}" class="w-full h-24 object-contain mb-3 group-hover:scale-110 transition-transform">
+                    <div class="text-[9px] font-bold text-gray-500 uppercase truncate">${it.name}</div>
+                    <div class="text-[#ffb400] font-black text-xs">${it.price.toLocaleString()} ₽</div>
                 </div>
             `).reverse().join('');
         }
 
-        // КЕЙСЫ
-        const grid = document.getElementById('cases-grid');
-        grid.innerHTML = CASES.map(c => `
-            <div onclick="openPreview('${c.id}')" class="glass-card p-6 flex flex-col items-center cursor-pointer hover:scale-105 transition border border-white/5 hover:border-[#ffb400]/30">
-                <img src="https://files.opskins.media/file/vgo-img/item/clutch-case.png" class="w-32 h-32 object-contain mb-4">
-                <div class="text-sm font-bold uppercase text-gray-500">${c.name}</div>
-                <div class="text-[#ffb400] font-black text-xl mt-1">${c.price.toLocaleString()} ₽</div>
-            </div>
-        `).join('');
-
-        window.openPreview = (id) => {
+        // Roulette Logic
+        window.openCasePreview = (id) => {
             const c = CASES.find(x => x.id === id);
-            document.getElementById('p-name').innerText = c.name;
-            document.getElementById('p-price').innerText = c.price.toLocaleString() + " ₽";
-            document.getElementById('p-items').innerHTML = c.items.map(itemId => {
-                const it = ITEMS.find(i => i.id === itemId);
+            document.getElementById('case-title').innerText = c.name;
+            document.getElementById('case-price-tag').innerText = c.price.toLocaleString() + " ₽";
+            
+            document.getElementById('case-items-preview').innerHTML = c.items.map(itemId => {
+                const item = ITEMS.find(i => i.id === itemId);
                 return `
-                    <div class="bg-white/5 p-3 rounded-xl flex flex-col items-center">
-                        <img src="${it.img}" class="w-16 h-12 object-contain">
-                        <div class="text-[8px] font-bold mt-2 truncate w-full text-center">${it.name}</div>
+                    <div class="bg-white/5 p-4 rounded-xl flex flex-col items-center">
+                        <img src="${item.img}" class="w-20 h-16 object-contain">
+                        <div class="text-[8px] font-bold text-center mt-2 opacity-60 uppercase truncate w-full">${item.name}</div>
                     </div>
                 `;
             }).join('');
-            
-            document.getElementById('p-open-btn').onclick = () => startRoll(c);
-            openModal('modal-preview');
+
+            document.getElementById('btn-open-case').onclick = () => startRoll(c);
+            openModal('modal-case');
         };
 
-        // РУЛЕТКА
         function startRoll(caseObj) {
             if(!user) return openModal('modal-auth');
-            if(userData.balance < caseObj.price) return alert("Недостаточно баланса!");
+            if(userData.balance < caseObj.price) return alert("Недостаточно средств!");
 
-            closeModal('modal-preview');
-            document.getElementById('modal-roll').classList.remove('hidden');
-            document.getElementById('roll-ui').classList.remove('hidden');
-            document.getElementById('result-ui').classList.add('hidden');
+            closeModal('modal-case');
+            openModal('modal-roll');
+            document.getElementById('rolling-state').classList.remove('hidden');
+            document.getElementById('result-state').classList.add('hidden');
 
             const carousel = document.getElementById('carousel');
             carousel.style.transition = 'none';
             carousel.style.transform = 'translateX(0)';
 
-            // Генерация ленты
+            // Создание ленты
             let tape = [];
-            for(let i=0; i<80; i++) tape.push(ITEMS[Math.floor(Math.random() * ITEMS.length)]);
-            
-            // Финальный предмет (шанс из кейса)
-            const possible = caseObj.items.map(id => ITEMS.find(it => it.id === id));
-            currentWinningItem = possible[Math.floor(Math.random() * possible.length)];
-            tape[70] = currentWinningItem;
+            for(let i=0; i<85; i++) {
+                tape.push(ITEMS[Math.floor(Math.random() * ITEMS.length)]);
+            }
+
+            // Определение выигрыша на основе шансов кейса
+            const pool = caseObj.items.map(id => ITEMS.find(it => it.id === id));
+            winItem = pool[Math.floor(Math.random() * pool.length)];
+            tape[75] = winItem;
 
             carousel.innerHTML = tape.map(item => `
-                <div class="item-card">
-                    <img src="${item.img}">
-                    <div class="rarity-line ${item.rarity}" style="position:static; height:3px; margin-top:10px; width:60px; border-radius:5px"></div>
+                <div class="carousel-item">
+                    <img src="${item.img}" class="w-32 h-24 object-contain">
+                    <div class="rarity-indicator ${item.rarity}"></div>
                 </div>
             `).join('');
 
@@ -355,35 +370,36 @@
             userData.balance -= caseObj.price;
             update(ref(db, `users/${user.uid}`), { balance: userData.balance });
 
+            // Анимация
             setTimeout(() => {
-                const itemWidth = 170; // 160 + margin 10
+                const itemFullWidth = 200; // width 180 + margins 10+10
                 const center = document.querySelector('.roulette-container').offsetWidth / 2;
-                const targetPos = (70 * itemWidth) - center + (itemWidth / 2);
+                const finalPos = (75 * itemFullWidth) - center + (itemFullWidth / 2);
                 
-                carousel.style.transition = 'transform 7s cubic-bezier(0.1, 0, 0.1, 1)';
-                carousel.style.transform = `translateX(-${targetPos}px)`;
+                carousel.style.transition = 'transform 8s cubic-bezier(0.1, 0, 0.1, 1)';
+                carousel.style.transform = `translateX(-${finalPos}px)`;
             }, 50);
 
-            setTimeout(showResult, 7200);
+            setTimeout(showWin, 8500);
         }
 
-        function showResult() {
-            document.getElementById('roll-ui').classList.add('hidden');
-            document.getElementById('result-ui').classList.remove('hidden');
-            document.getElementById('result-img').src = currentWinningItem.img;
-            document.getElementById('result-name').innerText = currentWinningItem.name;
-            document.getElementById('result-price').innerText = currentWinningItem.price.toLocaleString() + " ₽";
-            document.getElementById('result-rarity').className = `rarity-line ${currentWinningItem.rarity}`;
+        function showWin() {
+            document.getElementById('rolling-state').classList.add('hidden');
+            document.getElementById('result-state').classList.remove('hidden');
+            document.getElementById('win-img').src = winItem.img;
+            document.getElementById('win-name').innerText = winItem.name;
+            document.getElementById('win-price').innerText = winItem.price.toLocaleString() + " ₽";
+            document.getElementById('win-rarity-line').className = `rarity-indicator ${winItem.rarity}`;
         }
 
-        window.keepWin = () => {
-            userData.inventory.push({...currentWinningItem, uid: Date.now()});
+        window.keepItem = () => {
+            userData.inventory.push({...winItem, uid: Date.now()});
             update(ref(db, `users/${user.uid}`), { inventory: userData.inventory });
             closeModal('modal-roll');
         };
 
-        window.sellWin = () => {
-            userData.balance += currentWinningItem.price;
+        window.sellItem = () => {
+            userData.balance += winItem.price;
             update(ref(db, `users/${user.uid}`), { balance: userData.balance });
             closeModal('modal-roll');
         };
@@ -395,7 +411,6 @@
             document.getElementById('view-home').classList.toggle('hidden', tab !== 'home');
             document.getElementById('view-profile').classList.toggle('hidden', tab !== 'profile');
         };
-
     </script>
 </body>
 </html>
