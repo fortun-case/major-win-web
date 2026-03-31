@@ -22,25 +22,29 @@ const roulette = document.getElementById('roulette');
 const openBtn = document.getElementById('open-btn');
 const balanceDisplay = document.getElementById('balance');
 
-// 1. Загрузка всех скинов (Используем другой надежный API)
+// 1. Загрузка скинов через прокси (чтобы избежать CORS ошибок)
 async function loadSkins() {
     try {
-        // Этот API отдает данные в правильном формате HTTPS
-        const response = await fetch('https://bymykel.github.io/CSGO-API/api/ru/skins.json');
+        // Используем проверенный источник данных CS2
+        const response = await fetch('https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/ru/skins.json');
         const data = await response.json();
         
-        // Фильтруем скины, оставляя только те, у которых есть картинка
-        allSkins = data.filter(s => s.image && s.name && s.rarity);
-        
-        console.log("Скинов загружено:", allSkins.length);
+        // Оставляем только нужные данные
+        allSkins = data.map(s => ({
+            name: s.name,
+            image: s.image,
+            color: s.rarity.color || "#fff"
+        }));
+
+        console.log("Успешно загружено скинов:", allSkins.length);
         renderInitialList();
     } catch (e) {
-        console.error("Ошибка загрузки API:", e);
+        console.error("Ошибка API:", e);
         balanceDisplay.innerText = "Ошибка загрузки данных!";
     }
 }
 
-// 2. Баланс
+// 2. Инициализация баланса
 async function initBalance() {
     const balanceRef = ref(db, 'user/balance');
     const snapshot = await get(balanceRef);
@@ -54,45 +58,37 @@ async function initBalance() {
 }
 
 function updateBalanceUI() {
-    balanceDisplay.innerText = `Баланс: ${userBalance.toFixed(0)}$`;
+    balanceDisplay.innerHTML = `Баланс: <span style="color: #4caf50;">${userBalance.toFixed(0)}$</span>`;
 }
 
-// 3. Создание карточки скина
-function createSkinCard(skin) {
+// 3. Создание карточки
+function createCard(skin) {
     const div = document.createElement('div');
     div.className = "item";
-    // Используем цвет редкости из API
-    const color = skin.rarity.color || '#fff';
-    div.style.borderBottom = `4px solid ${color}`;
-    
-    // Очищаем название от лишних слов
-    const shortName = skin.name.replace("Skins | ", "");
-    
+    div.style.borderBottom = `4px solid ${skin.color}`;
     div.innerHTML = `
-        <img src="${skin.image}" onerror="this.src='https://via.placeholder.com/100?text=No+Image'">
-        <p title="${shortName}">${shortName}</p>
+        <img src="${skin.image}" loading="lazy">
+        <p>${skin.name.split(' | ')[1] || skin.name}</p>
     `;
     return div;
 }
 
-// 4. Отрисовка ленты
+// 4. Начальная лента
 function renderInitialList() {
     roulette.innerHTML = "";
     roulette.style.transition = "none";
     roulette.style.transform = "translateX(0)";
     
-    if (allSkins.length === 0) return;
-
     for (let i = 0; i < 60; i++) {
         const randomSkin = allSkins[Math.floor(Math.random() * allSkins.length)];
-        roulette.appendChild(createSkinCard(randomSkin));
+        roulette.appendChild(createCard(randomSkin));
     }
 }
 
-// 5. Логика кнопки
+// 5. Логика открытия
 openBtn.onclick = async () => {
-    if (allSkins.length === 0) return alert("Подождите, скины еще загружаются...");
-    if (userBalance < CASE_PRICE) return alert("Недостаточно средств!");
+    if (allSkins.length === 0) return;
+    if (userBalance < CASE_PRICE) return alert("Недостаточно денег!");
 
     openBtn.disabled = true;
     userBalance -= CASE_PRICE;
@@ -104,15 +100,13 @@ openBtn.onclick = async () => {
     const winIndex = 45; 
     const winSkin = allSkins[Math.floor(Math.random() * allSkins.length)];
     
-    // Подменяем выигрышный элемент
     const winCard = roulette.children[winIndex];
-    const color = winSkin.rarity.color || '#fff';
-    winCard.style.borderBottom = `5px solid ${color}`;
+    winCard.style.borderBottom = `5px solid ${winSkin.color}`;
     winCard.innerHTML = `<img src="${winSkin.image}"><p>${winSkin.name}</p>`;
 
     setTimeout(() => {
         roulette.style.transition = "transform 5s cubic-bezier(0.1, 0, 0.1, 1)";
-        const itemWidth = 140; // 130px + 10px margin
+        const itemWidth = 140; 
         const containerWidth = roulette.parentElement.offsetWidth;
         const targetPos = (winIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2);
         roulette.style.transform = `translateX(-${targetPos}px)`;
@@ -122,7 +116,7 @@ openBtn.onclick = async () => {
         await push(ref(db, 'history'), { 
             name: winSkin.name, 
             img: winSkin.image, 
-            color: color 
+            color: winSkin.color 
         });
         openBtn.disabled = false;
     }, 5500);
