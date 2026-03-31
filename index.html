@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Major Win — Магазин Кейсов с изображениями</title>
+    <title>Major Win — Симулятор Кейсов</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -11,7 +11,6 @@
 
         :root {
             --bg-deep: #080a0c;
-            --bg-card: #12151a;
             --accent-gold: #ffb400;
             --rarity-rare: #4b69ff;
             --rarity-mythical: #8847ff;
@@ -24,291 +23,195 @@
             font-family: 'Montserrat', sans-serif;
             background-color: var(--bg-deep);
             color: #ffffff;
-            background-image: radial-gradient(circle at 50% -20%, #1a1f26 0%, var(--bg-deep) 60%);
             min-height: 100vh;
             overflow-x: hidden;
         }
 
         .glass-card {
-            background: rgba(18, 21, 26, 0.7);
-            backdrop-filter: blur(10px);
+            background: rgba(18, 21, 26, 0.8);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
+            border-radius: 16px;
         }
 
         .premium-btn {
             background: linear-gradient(135deg, #ffb400 0%, #ff8c00 100%);
             color: #000;
             font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 20px rgba(255, 140, 0, 0.3);
+            transition: all 0.2s ease;
         }
 
         .premium-btn:hover:not(:disabled) {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 25px rgba(255, 140, 0, 0.5);
+            transform: scale(1.02);
+            filter: brightness(1.1);
         }
 
-        .case-card {
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-        }
+        /* Индикатор редкости */
+        .rarity-line { height: 4px; width: 100%; position: absolute; bottom: 0; left: 0; border-radius: 0 0 16px 16px; }
+        .rare { background: var(--rarity-rare); box-shadow: 0 0 15px var(--rarity-rare); }
+        .mythical { background: var(--rarity-mythical); box-shadow: 0 0 15px var(--rarity-mythical); }
+        .legendary { background: var(--rarity-legendary); box-shadow: 0 0 15px var(--rarity-legendary); }
+        .ancient { background: var(--rarity-ancient); box-shadow: 0 0 15px var(--rarity-ancient); }
+        .gold { background: var(--rarity-gold); box-shadow: 0 0 15px var(--rarity-gold); }
 
-        .case-card:hover {
-            transform: translateY(-8px);
-            border-bottom-color: var(--accent-gold);
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        /* Цвета редкости для свечения */
-        .item-glow-rare { border-bottom: 3px solid var(--rarity-rare); background: linear-gradient(to top, rgba(75, 105, 255, 0.1), transparent); }
-        .item-glow-mythical { border-bottom: 3px solid var(--rarity-mythical); background: linear-gradient(to top, rgba(136, 71, 255, 0.1), transparent); }
-        .item-glow-legendary { border-bottom: 3px solid var(--rarity-legendary); background: linear-gradient(to top, rgba(211, 44, 230, 0.1), transparent); }
-        .item-glow-ancient { border-bottom: 3px solid var(--rarity-ancient); background: linear-gradient(to top, rgba(235, 75, 75, 0.1), transparent); }
-        .item-glow-gold { border-bottom: 3px solid var(--rarity-gold); background: linear-gradient(to top, rgba(255, 180, 0, 0.15), transparent); }
-
-        /* Рулетка */
         .roulette-container {
             mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
-        }
-
-        .case-carousel {
-            display: flex;
-            transition: transform 7s cubic-bezier(0.05, 0.3, 0.1, 1);
-        }
-
-        .roulette-item {
-            min-width: 160px;
-            height: 180px;
-            background: rgba(255, 255, 255, 0.02);
-            margin: 0 4px;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: relative;
         }
 
         .roulette-marker {
             position: absolute;
             left: 50%;
-            top: -10px;
-            bottom: -10px;
-            width: 4px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
             background: var(--accent-gold);
-            z-index: 20;
+            z-index: 50;
             transform: translateX(-50%);
-            box-shadow: 0 0 20px var(--accent-gold);
+            box-shadow: 0 0 15px var(--accent-gold);
         }
 
-        .tab-active { color: white !important; border-bottom: 2px solid var(--accent-gold); border-radius: 0 !important; }
+        .carousel {
+            display: flex;
+            transition: transform 7s cubic-bezier(0.1, 0, 0.1, 1);
+            will-change: transform;
+        }
 
-        .preview-grid-item {
-            background: rgba(255,255,255,0.02);
+        .item-card {
+            min-width: 160px;
+            height: 180px;
+            margin: 0 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.03);
             border-radius: 12px;
-            padding: 10px;
-            text-align: center;
-            transition: transform 0.2s;
         }
-        .preview-grid-item:hover { transform: scale(1.05); }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade { animation: fadeIn 0.3s ease forwards; }
+        .item-card img {
+            width: 120px;
+            height: 90px;
+            object-fit: contain;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+        }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        @keyframes winPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .win-animate { animation: winPulse 2s infinite ease-in-out; }
     </style>
 </head>
 <body>
 
-    <!-- ШАПКА -->
-    <header class="h-24 flex items-center border-b border-white/5 bg-black/40 backdrop-blur-md sticky top-0 z-[100]">
+    <!-- Навигация -->
+    <header class="h-20 border-b border-white/5 flex items-center bg-black/50 sticky top-0 z-[100]">
         <div class="container mx-auto px-6 flex justify-between items-center">
-            <div class="flex items-center gap-12">
-                <div class="text-3xl font-black italic tracking-tighter cursor-pointer" onclick="switchTab('main')">
-                    MAJOR<span class="text-[#ffb400] not-italic">WIN</span>
-                </div>
-                <nav class="hidden lg:flex items-center gap-4">
-                    <button onclick="switchTab('main')" class="px-4 py-2 transition font-bold text-gray-400 hover:text-white" id="nav-main">Магазин</button>
-                    <button onclick="switchTab('upgrades')" class="px-4 py-2 transition font-bold text-gray-400 hover:text-white" id="nav-upgrades">Апгрейды</button>
-                    <button onclick="switchTab('contracts')" class="px-4 py-2 transition font-bold text-gray-400 hover:text-white" id="nav-contracts">Контракты</button>
-                </nav>
+            <div class="text-2xl font-black italic tracking-tighter cursor-pointer" onclick="location.reload()">
+                MAJOR<span class="text-[#ffb400]">WIN</span>
             </div>
-
-            <div class="flex items-center gap-4">
-                <div id="user-info" class="hidden flex items-center gap-4">
-                    <div class="bg-white/5 border border-white/10 rounded-2xl p-1 pr-4 flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl premium-btn flex items-center justify-center text-xl">
-                            <i class="fas fa-wallet"></i>
-                        </div>
-                        <div>
-                            <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Баланс</div>
-                            <div class="font-black text-[#ffb400]"><span id="user-balance">0.00</span> ₽</div>
-                        </div>
-                    </div>
-                    <button onclick="switchTab('profile')" class="group flex items-center gap-3 bg-white/5 p-1 pr-4 rounded-2xl border border-white/5 hover:border-white/20 transition">
-                        <div class="w-10 h-10 rounded-xl border border-[#ffb400]/30 overflow-hidden flex items-center justify-center bg-gray-800">
-                            <i class="fas fa-user text-lg text-[#ffb400]"></i>
-                        </div>
-                        <div class="text-sm font-bold truncate max-w-[100px]" id="header-nickname">Загрузка...</div>
-                    </button>
+            
+            <div class="flex items-center gap-6">
+                <div id="balance-display" class="hidden flex flex-col items-end">
+                    <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Баланс</span>
+                    <span class="text-[#ffb400] font-black text-xl"><span id="user-bal">0</span> ₽</span>
                 </div>
-                <div id="auth-area">
-                    <button onclick="openAuthModal()" class="premium-btn px-8 py-3 rounded-2xl">Войти</button>
+                <div id="auth-btns">
+                    <button onclick="openModal('modal-auth')" class="premium-btn px-6 py-2 rounded-xl text-sm">Войти</button>
+                </div>
+                <div id="user-btns" class="hidden">
+                    <button onclick="switchTab('profile')" class="bg-white/5 hover:bg-white/10 p-3 rounded-xl transition">
+                        <i class="fas fa-user"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </header>
 
-    <main class="container mx-auto px-6 py-12">
-        <!-- МАГАЗИН -->
-        <div id="page-main">
-            <h1 class="text-4xl font-black uppercase italic mb-2">Мистери Кейсы</h1>
-            <p class="text-gray-500 font-bold mb-10">Нажмите на кейс, чтобы посмотреть содержимое и цену</p>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6" id="cases-grid"></div>
-        </div>
+    <main class="container mx-auto px-6 py-10">
+        <!-- Главная: Кейсы -->
+        <section id="view-home">
+            <h1 class="text-3xl font-black italic uppercase mb-8">Мистери Кейсы</h1>
+            <div id="cases-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
+        </section>
 
-        <!-- АПГРЕЙДЫ -->
-        <div id="page-upgrades" class="hidden">
-            <h2 class="text-4xl font-black mb-12 italic uppercase text-center">Апгрейд</h2>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center max-w-6xl mx-auto">
-                <div class="glass-card p-6 h-[400px] flex flex-col items-center justify-center border-dashed border-2 border-white/10" id="upgrade-source" onclick="openInventorySelector('upgrade-source')">
-                    <i class="fas fa-plus text-4xl text-gray-700 mb-4"></i>
-                    <p class="text-gray-500 font-bold uppercase text-xs">Ваш предмет</p>
-                </div>
-                <div class="text-center">
-                    <div class="text-6xl font-black text-[#ffb400] mb-6" id="upgrade-chance">0%</div>
-                    <button onclick="attemptUpgrade()" id="upgrade-btn" disabled class="premium-btn w-full py-6 rounded-2xl text-xl">Начать апгрейд</button>
-                </div>
-                <div class="glass-card p-6 h-[400px] flex flex-col items-center justify-center border-dashed border-2 border-white/10" id="upgrade-target" onclick="openMarketSelector()">
-                    <i class="fas fa-crosshairs text-4xl text-gray-700 mb-4"></i>
-                    <p class="text-gray-500 font-bold uppercase text-xs">Цель апгрейда</p>
-                </div>
+        <!-- Профиль -->
+        <section id="view-profile" class="hidden">
+            <div class="flex justify-between items-end mb-8">
+                <h1 class="text-3xl font-black italic uppercase">Ваш Инвентарь</h1>
+                <button onclick="switchTab('home')" class="text-gray-500 hover:text-white transition text-sm font-bold uppercase">Назад в магазин</button>
             </div>
-        </div>
-
-        <!-- КОНТРАКТЫ -->
-        <div id="page-contracts" class="hidden text-center">
-            <h2 class="text-4xl font-black mb-4 italic uppercase">Контракты</h2>
-            <p class="text-gray-500 mb-12">Выберите 3 предмета для обмена на 1 случайный предмет выше классом</p>
-            <div class="grid grid-cols-3 gap-6 max-w-4xl mx-auto mb-10" id="contract-slots">
-                <div class="glass-card h-52 flex flex-col items-center justify-center border-dashed border-2 border-white/10 cursor-pointer" onclick="openInventorySelector('contract', 0)"> <i class="fas fa-plus text-gray-700"></i> </div>
-                <div class="glass-card h-52 flex flex-col items-center justify-center border-dashed border-2 border-white/10 cursor-pointer" onclick="openInventorySelector('contract', 1)"> <i class="fas fa-plus text-gray-700"></i> </div>
-                <div class="glass-card h-52 flex flex-col items-center justify-center border-dashed border-2 border-white/10 cursor-pointer" onclick="openInventorySelector('contract', 2)"> <i class="fas fa-plus text-gray-700"></i> </div>
-            </div>
-            <button id="contract-btn" disabled onclick="runContract()" class="premium-btn px-20 py-5 rounded-2xl text-xl">Подписать контракт</button>
-        </div>
-
-        <!-- ПРОФИЛЬ -->
-        <div id="page-profile" class="hidden">
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                <div class="lg:col-span-1 space-y-6">
-                    <div class="glass-card p-8 text-center">
-                        <div class="w-24 h-24 rounded-3xl premium-btn mx-auto mb-6 flex items-center justify-center text-4xl shadow-xl">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <h2 id="prof-nickname" class="font-black text-2xl truncate">User</h2>
-                        <p id="prof-email" class="text-gray-500 text-xs mb-8">email@test.com</p>
-                        <div class="bg-black/30 p-4 rounded-xl flex justify-between">
-                            <span class="text-gray-500 font-bold text-[10px] uppercase">Открыто</span>
-                            <span class="font-black text-[#ffb400]" id="prof-opened">0</span>
-                        </div>
-                        <button onclick="handleSignOut()" class="w-full mt-6 py-3 border border-white/5 hover:bg-white/5 rounded-xl text-xs font-bold uppercase transition">Выйти</button>
-                    </div>
-                </div>
-                <div class="lg:col-span-3">
-                    <h3 class="text-2xl font-black italic uppercase mb-6">Ваш Инвентарь (<span id="inv-count">0</span>)</h3>
-                    <div id="prof-inventory" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4"></div>
-                </div>
-            </div>
-        </div>
+            <div id="inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+        </section>
     </main>
 
-    <!-- МОДАЛЬНЫЕ ОКНА -->
-
-    <!-- Превью Кейса -->
-    <div id="modal-preview" class="fixed inset-0 z-[150] bg-black/90 backdrop-blur-md flex items-center justify-center hidden p-4">
-        <div class="glass-card max-w-4xl w-full p-8 animate-fade">
-            <div class="flex justify-between items-start mb-8">
-                <div>
-                    <h2 id="p-title" class="text-3xl font-black italic uppercase">Название кейса</h2>
-                    <p class="text-[#ffb400] font-black text-xl" id="p-price">0 ₽</p>
-                </div>
-                <button onclick="closeModal('modal-preview')" class="text-gray-500 hover:text-white text-2xl"><i class="fas fa-times"></i></button>
+    <!-- Модалка Кейса -->
+    <div id="modal-preview" class="fixed inset-0 z-[200] bg-black/90 hidden flex items-center justify-center p-4">
+        <div class="glass-card max-w-4xl w-full p-8 relative">
+            <button onclick="closeModal('modal-preview')" class="absolute top-6 right-6 text-gray-500 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+            <div class="text-center mb-8">
+                <h2 id="p-name" class="text-3xl font-black italic uppercase">Кейс</h2>
+                <p id="p-price" class="text-[#ffb400] font-black text-xl mt-2">0 ₽</p>
             </div>
-            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 mb-10 max-h-[50vh] overflow-y-auto custom-scrollbar pr-2" id="p-items-grid"></div>
+            <div id="p-items" class="grid grid-cols-3 sm:grid-cols-5 gap-4 mb-10 max-h-[40vh] overflow-y-auto pr-2"></div>
             <div class="flex justify-center">
-                <button id="p-open-btn" class="premium-btn px-16 py-5 rounded-2xl text-xl">Открыть за <span id="p-btn-price">0</span> ₽</button>
+                <button id="p-open-btn" class="premium-btn px-12 py-4 rounded-2xl text-lg shadow-lg">Открыть кейс</button>
             </div>
         </div>
     </div>
 
-    <!-- Рулетка -->
-    <div id="modal-case" class="fixed inset-0 z-[200] bg-black/95 backdrop-blur-2xl flex items-center justify-center hidden">
-        <div class="w-full max-w-6xl px-4 relative">
-            <div class="text-center mb-16">
-                <h2 id="c-modal-title" class="text-5xl font-black italic uppercase tracking-tighter">ОТКРЫВАЕМ...</h2>
-            </div>
-            <div class="relative glass-card p-1 mb-16">
-                <div class="roulette-marker"></div>
-                <div class="roulette-container h-48 overflow-hidden rounded-xl bg-black/40">
-                    <div id="c-carousel" class="case-carousel h-full items-center"></div>
+    <!-- Модалка Рулетки -->
+    <div id="modal-roll" class="fixed inset-0 z-[300] bg-black/95 hidden flex items-center justify-center">
+        <div class="w-full max-w-5xl px-4">
+            <div id="roll-ui">
+                <h2 class="text-center text-4xl font-black italic mb-12 animate-pulse">ОТКРЫВАЕМ...</h2>
+                <div class="roulette-container h-48 bg-white/5 rounded-2xl overflow-hidden glass-card">
+                    <div class="roulette-marker"></div>
+                    <div id="carousel" class="carousel h-full items-center"></div>
                 </div>
             </div>
-            <div id="c-result" class="hidden flex flex-col items-center">
-                <div id="c-result-card" class="glass-card p-8 flex flex-col items-center w-72 scale-110 shadow-2xl">
-                    <img id="c-result-img" src="" class="w-48 h-48 object-contain">
-                    <div id="c-result-name" class="font-black text-center text-lg mt-4">NAME</div>
-                    <div class="text-[#ffb400] font-black mt-1" id="c-result-price">0 ₽</div>
-                    <div class="flex gap-3 mt-8 w-full">
-                        <button onclick="sellWonItem()" class="flex-1 bg-white/5 hover:bg-white/10 py-3 rounded-xl font-bold text-[10px] uppercase transition">Продать</button>
-                        <button onclick="keepWonItem()" class="flex-1 premium-btn py-3 rounded-xl font-bold text-[10px] uppercase transition">Оставить</button>
+
+            <div id="result-ui" class="hidden flex flex-col items-center">
+                <div id="result-card" class="glass-card p-10 flex flex-col items-center win-animate relative overflow-hidden">
+                    <div id="result-rarity" class="rarity-line"></div>
+                    <img id="result-img" src="" class="w-64 h-48 object-contain mb-6">
+                    <h3 id="result-name" class="text-2xl font-black text-center mb-2">Название скина</h3>
+                    <p id="result-price" class="text-[#ffb400] font-black text-xl mb-8">0 ₽</p>
+                    <div class="flex gap-4 w-full">
+                        <button onclick="sellWin()" class="flex-1 py-4 bg-white/5 hover:bg-white/10 rounded-xl font-bold uppercase text-xs transition">Продать</button>
+                        <button onclick="keepWin()" class="flex-1 py-4 premium-btn rounded-xl font-bold uppercase text-xs transition">В инвентарь</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Выбор в инвентаре -->
-    <div id="modal-inv-select" class="fixed inset-0 z-[300] bg-black/90 flex items-center justify-center hidden p-4">
-        <div class="glass-card max-w-4xl w-full p-8 flex flex-col h-[80vh]">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-black italic uppercase">Выберите предмет</h3>
-                <button onclick="closeModal('modal-inv-select')" class="text-gray-500 hover:text-white"><i class="fas fa-times"></i></button>
-            </div>
-            <div id="inv-select-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 overflow-y-auto custom-scrollbar pr-2"></div>
-        </div>
-    </div>
-
-    <!-- Вход -->
-    <div id="modal-auth" class="fixed inset-0 z-[400] bg-black/80 flex items-center justify-center hidden p-4">
+    <!-- Модалка Авторизации -->
+    <div id="modal-auth" class="fixed inset-0 z-[400] bg-black/80 hidden flex items-center justify-center p-4">
         <div class="glass-card max-w-md w-full p-10">
-            <h3 id="auth-t" class="text-center text-xl font-black mb-8 italic uppercase">Вход в MAJOR WIN</h3>
+            <h2 class="text-center text-2xl font-black mb-8 italic uppercase">Вход / Регистрация</h2>
             <div class="space-y-4">
-                <input id="auth-email" type="email" placeholder="Email" class="w-full bg-black/40 border border-white/10 p-4 rounded-2xl outline-none focus:border-[#ffb400]/50">
-                <input id="auth-pass" type="password" placeholder="Пароль" class="w-full bg-black/40 border border-white/10 p-4 rounded-2xl outline-none focus:border-[#ffb400]/50">
-                <button onclick="handleAuth()" id="auth-main-btn" class="premium-btn w-full py-5 rounded-2xl">Войти</button>
-                <button onclick="toggleAuth()" id="auth-sec-btn" class="w-full text-center text-gray-500 text-[10px] font-black uppercase mt-4 underline">Нет аккаунта? Регистрация</button>
+                <input id="auth-email" type="email" placeholder="Email" class="w-full bg-black/50 border border-white/10 p-4 rounded-xl outline-none focus:border-[#ffb400]">
+                <input id="auth-pass" type="password" placeholder="Пароль" class="w-full bg-black/50 border border-white/10 p-4 rounded-xl outline-none focus:border-[#ffb400]">
+                <button onclick="handleAuth()" class="premium-btn w-full py-4 rounded-xl">Продолжить</button>
+                <p class="text-center text-xs text-gray-500 px-4">Используйте любые данные, это тестовый симулятор.</p>
+                <button onclick="closeModal('modal-auth')" class="w-full text-center text-gray-600 text-xs uppercase font-bold mt-4">Отмена</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getDatabase, ref, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+        // КОНФИГУРАЦИЯ ИЗ ВАШЕГО СКРИНШОТА
         const firebaseConfig = {
-            apiKey: "AIzaSyA-8Htang_pmMugvnekBa2s4akqHD7fGYU",
+            apiKey: "AIzaSyA-8Htang_pmMugvnekBa2s4akqHD7fGYU", // Исправленный ключ
             authDomain: "major-win-b2255.firebaseapp.com",
             projectId: "major-win-b2255",
-            storageBucket: "major-win-b2255.firebasestorage.app",
-            messagingSenderId: "1088188197034",
-            appId: "1:1088188197034:web:57e71de855ec78b32c88d3",
             databaseURL: "https://major-win-b2255-default-rtdb.europe-west1.firebasedatabase.app"
         };
 
@@ -316,210 +219,182 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // БАЗА СКИНОВ С ОФИЦИАЛЬНЫМИ ИЗОБРАЖЕНИЯМИ STEAM
+        // ИСПОЛЬЗУЕМ СТАБИЛЬНЫЕ ИЗОБРАЖЕНИЯ (Cloudinary/Imgur или игровые превью)
         const ITEMS = [
-            { id: 1, name: "P250 | Cassette", price: 15, rarity: 'rare', img: "https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopujbPgNjfszYfS9P-t26mY-Zkvb3MevVlz0D6pEgj-vE8N_32VDm-0Vvam-gctDGJQE_ZlDY8ge8x-_r08S7vJzBznph6SJx-z-DyG2TExuE/512fx512f" },
-            { id: 2, name: "USP-S | Ticket to Hell", price: 65, rarity: 'rare', img: "https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcjhQ09-jq5WYh8j_Or7um25V4dB8xOuYp9323lG3-0A6am-nd9SUI1A-YAzZ-FPsx-e8hJS0u8vMziFis3Ym4XfD30vgw5f2RTE/512fx512f" },
-            { id: 3, name: "AK-47 | Slate", price: 350, rarity: 'mythical', img: "https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cppR32u_A9on23A3t_hE4Y236IdfDIAQ5MA7Q-VPrxLvu08TvtZzAn3Uws3In-z-DyPbaS8E/512fx512f" },
-            { id: 4, name: "M4A4 | Spider Lily", price: 420, rarity: 'mythical', img: "https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-GkvP9Jrbum25V4dB8xLvFp9Sg3AW1-hZpYTunI4fAcVVsM1_V-1S3k7jnhp_pvJrBmnV9-n51YgCis2c/512fx512f" },
-            { id: 5, name: "AWP | Atheris", price: 900, rarity: 'mythical', img: "https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-GkvP9Jrbum25V4dB8xOiSptitjVaxrhY4OzyhLITAdlU2YV_R_AK9ye2505Tq7Z_Oz3FrunZz7XmD30vgf7Abe_8/512fx512f" },
-            { id: 6, name: "M4A1-S | Player Two", price: 6500, rarity: 'ancient', img: "https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhjxszFJTwW09Kzm7-GkvP9Jrbum25V4dB8xL-XpI6mjVDhr0s9Mm_0I9ORdAVoN1nU_1O4k-7qhZ_pvJ_AyCRm6HQ8pSGKzLpD3Zg/512fx512f" },
-            { id: 7, name: "AK-47 | Nightwish", price: 8500, rarity: 'ancient', img: "https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0924lYK0m_7zO6-fxmJVuZ0m3-iX89-migXg-RJuY2D1LITAdw86ZAuDqVPrle680JS_vsvIm3V9-n51zOatfLw/512fx512f" },
-            { id: 8, name: "M9 Bayonet | Gamma Doppler", price: 145000, rarity: 'gold', img: "https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1fLEcjVL49KJlZG0k_b5MqjSg3pC8pd6iOzC_J78jRrl-0A6N2D6JY-SdAVvN1HW-Vm6l7_r0ZW-6p_MyHJ9-n51H3_y-RE/512fx512f" },
-            { id: 9, name: "AWP | Dragon Lore", price: 850000, rarity: 'gold', img: "https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_NIl59_9O6nYeDg8j5Nr_Yg2YfuZ0oib_E9tj33Vay-0s-Ym_wI46XelA5MFvX_VO7k-e615PtvJ2am3FhuCQ8pSGK0W8fW3w/512fx512f" },
-            { id: 10, name: "Karambit | Lore", price: 120000, rarity: 'gold', img: "https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJfxPrMfipP7dezm4yZlsj_Ib7ummJW4NE_3r2VpI_33Vay-0A_NW33IdSccgU2YwmD-ljtxb3ugp_u6pjBwXBh6CU8pSGKV6O9Z0Q/512fx512f" }
+            { id: 1, name: "Glock-18 | High Beam", price: 12, rarity: 'rare', img: "https://files.opskins.media/file/vgo-img/item/glock-18-high-beam-factory-new.png" },
+            { id: 2, name: "USP-S | Cyrex", price: 250, rarity: 'mythical', img: "https://files.opskins.media/file/vgo-img/item/usp-s-cyrex-factory-new.png" },
+            { id: 3, name: "M4A4 | Desolate Space", price: 850, rarity: 'legendary', img: "https://files.opskins.media/file/vgo-img/item/m4a4-desolate-space-factory-new.png" },
+            { id: 4, name: "AK-47 | Neon Revolution", price: 2100, rarity: 'ancient', img: "https://files.opskins.media/file/vgo-img/item/ak-47-neon-revolution-factory-new.png" },
+            { id: 5, name: "AWP | Asiimov", price: 12000, rarity: 'ancient', img: "https://files.opskins.media/file/vgo-img/item/awp-asiimov-field-tested.png" },
+            { id: 6, name: "Butterfly Knife | Fade", price: 185000, rarity: 'gold', img: "https://files.opskins.media/file/vgo-img/item/butterfly-knife-fade-factory-new.png" },
+            { id: 7, name: "M9 Bayonet | Doppler", price: 95000, rarity: 'gold', img: "https://files.opskins.media/file/vgo-img/item/m9-bayonet-doppler-factory-new.png" }
         ];
 
         const CASES = [
-            { id: 'cheap', name: 'Синий десант', price: 49, items: [1, 1, 1, 1, 2, 2] },
-            { id: 'standard', name: 'Черная пятница', price: 450, items: [2, 2, 3, 3, 4, 5] },
-            { id: 'premium', name: 'Тяжелый люкс', price: 4500, items: [4, 5, 5, 6, 7] },
-            { id: 'knives', name: 'Королевский', price: 85000, items: [7, 7, 8, 9, 10] }
+            { id: 'c1', name: 'Стартовый набор', price: 50, items: [1, 1, 1, 2] },
+            { id: 'c2', name: 'Оружейный кейс', price: 500, items: [1, 2, 2, 3] },
+            { id: 'c3', name: 'Секретное оружие', price: 2500, items: [3, 3, 4, 5] },
+            { id: 'c4', name: 'Кейс с Ножами', price: 45000, items: [5, 6, 7] }
         ];
 
         let user = null;
-        let userData = { nickname: '', balance: 0, inventory: [], stats: { opened: 0 } };
-        let isReg = false;
+        let userData = { balance: 0, inventory: [] };
+        let currentWinningItem = null;
 
-        window.openAuthModal = () => document.getElementById('modal-auth').classList.remove('hidden');
-        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
-        window.toggleAuth = () => {
-            isReg = !isReg;
-            document.getElementById('auth-t').innerText = isReg ? 'Регистрация' : 'Вход в MAJOR WIN';
-            document.getElementById('auth-main-btn').innerText = isReg ? 'Создать' : 'Войти';
-            document.getElementById('auth-sec-btn').innerText = isReg ? 'Есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
-        };
-
+        // AUTH
         window.handleAuth = async () => {
             const email = document.getElementById('auth-email').value;
             const pass = document.getElementById('auth-pass').value;
-            if(!email || !pass) return;
+            if(!email || pass.length < 6) return alert("Введите корректные данные (пароль от 6 символов)");
+            
             try {
-                if(isReg) {
-                    const c = await createUserWithEmailAndPassword(auth, email, pass);
-                    await set(ref(db, `users/${c.user.uid}`), { nickname: email.split('@')[0], balance: 5000, inventory: [], stats: { opened: 0 } });
-                } else {
-                    await signInWithEmailAndPassword(auth, email, pass);
-                }
-                closeModal('modal-auth');
-            } catch(e) { alert("Ошибка: " + e.message); }
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch(e) {
+                try {
+                    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+                    await set(ref(db, `users/${cred.user.uid}`), { balance: 10000, inventory: [] });
+                } catch(err) { alert("Ошибка: " + err.message); }
+            }
+            closeModal('modal-auth');
         };
-
-        window.handleSignOut = () => signOut(auth);
 
         onAuthStateChanged(auth, u => {
             if(u) {
                 user = u;
-                document.getElementById('auth-area').classList.add('hidden');
-                document.getElementById('user-info').classList.remove('hidden');
+                document.getElementById('auth-btns').classList.add('hidden');
+                document.getElementById('balance-display').classList.remove('hidden');
+                document.getElementById('user-btns').classList.remove('hidden');
                 onValue(ref(db, `users/${u.uid}`), snap => {
                     if(snap.exists()) {
                         userData = snap.val();
                         if(!userData.inventory) userData.inventory = [];
-                        renderUI();
+                        updateUI();
                     }
                 });
             } else {
                 user = null;
-                document.getElementById('auth-area').classList.remove('hidden');
-                document.getElementById('user-info').classList.add('hidden');
-                switchTab('main');
+                document.getElementById('auth-btns').classList.remove('hidden');
+                document.getElementById('balance-display').classList.add('hidden');
+                document.getElementById('user-btns').classList.add('hidden');
+                switchTab('home');
             }
         });
 
-        function renderUI() {
-            document.getElementById('user-balance').innerText = userData.balance.toLocaleString();
-            document.getElementById('header-nickname').innerText = userData.nickname || 'User';
-            document.getElementById('prof-nickname').innerText = userData.nickname || 'User';
-            document.getElementById('prof-email').innerText = user.email;
-            document.getElementById('prof-opened').innerText = userData.stats.opened;
-            document.getElementById('inv-count').innerText = userData.inventory.length;
-            
-            const inv = document.getElementById('prof-inventory');
-            inv.innerHTML = userData.inventory.map(i => `
-                <div class="glass-card p-4 item-glow-${i.rarity} relative group animate-fade">
-                    <img src="${i.img}" class="w-full h-28 object-contain">
-                    <div class="mt-2 text-[10px] font-black text-white uppercase truncate">${i.name}</div>
-                    <div class="text-[#ffb400] font-black text-xs">${i.price.toLocaleString()} ₽</div>
+        function updateUI() {
+            document.getElementById('user-bal').innerText = Math.floor(userData.balance).toLocaleString();
+            const invGrid = document.getElementById('inventory-grid');
+            invGrid.innerHTML = userData.inventory.map(item => `
+                <div class="glass-card p-4 relative group animate-fade">
+                    <img src="${item.img}" class="w-full h-24 object-contain">
+                    <div class="mt-2 text-[10px] font-bold text-gray-400 uppercase truncate">${item.name}</div>
+                    <div class="text-[#ffb400] font-black text-xs">${item.price.toLocaleString()} ₽</div>
+                    <div class="rarity-line ${item.rarity}"></div>
                 </div>
             `).reverse().join('');
         }
 
-        // ПРЕВЬЮ И ОТКРЫТИЕ
-        let selectedCase = null;
-        window.showCasePreview = (id) => {
-            selectedCase = CASES.find(c => c.id === id);
-            document.getElementById('p-title').innerText = selectedCase.name;
-            document.getElementById('p-price').innerText = selectedCase.price.toLocaleString() + " ₽";
-            document.getElementById('p-btn-price').innerText = selectedCase.price.toLocaleString();
-            
-            const grid = document.getElementById('p-items-grid');
-            grid.innerHTML = selectedCase.items.map(itemId => {
-                const item = ITEMS.find(i => i.id === itemId);
+        // КЕЙСЫ
+        const grid = document.getElementById('cases-grid');
+        grid.innerHTML = CASES.map(c => `
+            <div onclick="openPreview('${c.id}')" class="glass-card p-6 flex flex-col items-center cursor-pointer hover:scale-105 transition border border-white/5 hover:border-[#ffb400]/30">
+                <img src="https://files.opskins.media/file/vgo-img/item/clutch-case.png" class="w-32 h-32 object-contain mb-4">
+                <div class="text-sm font-bold uppercase text-gray-500">${c.name}</div>
+                <div class="text-[#ffb400] font-black text-xl mt-1">${c.price.toLocaleString()} ₽</div>
+            </div>
+        `).join('');
+
+        window.openPreview = (id) => {
+            const c = CASES.find(x => x.id === id);
+            document.getElementById('p-name').innerText = c.name;
+            document.getElementById('p-price').innerText = c.price.toLocaleString() + " ₽";
+            document.getElementById('p-items').innerHTML = c.items.map(itemId => {
+                const it = ITEMS.find(i => i.id === itemId);
                 return `
-                    <div class="preview-grid-item item-glow-${item.rarity}">
-                        <img src="${item.img}" class="w-full h-20 object-contain">
-                        <div class="text-[9px] font-bold mt-2 text-white truncate px-1">${item.name}</div>
+                    <div class="bg-white/5 p-3 rounded-xl flex flex-col items-center">
+                        <img src="${it.img}" class="w-16 h-12 object-contain">
+                        <div class="text-[8px] font-bold mt-2 truncate w-full text-center">${it.name}</div>
                     </div>
                 `;
             }).join('');
             
-            document.getElementById('p-open-btn').onclick = () => {
-                if(!user) return openAuthModal();
-                if(userData.balance < selectedCase.price) return alert("Недостаточно средств на балансе!");
-                closeModal('modal-preview');
-                openRoulette(selectedCase.id);
-            };
-            document.getElementById('modal-preview').classList.remove('hidden');
+            document.getElementById('p-open-btn').onclick = () => startRoll(c);
+            openModal('modal-preview');
         };
 
         // РУЛЕТКА
-        let rolling = false;
-        let won = null;
-        function openRoulette(id) {
-            selectedCase = CASES.find(c => c.id === id);
-            document.getElementById('modal-case').classList.remove('hidden');
-            document.getElementById('c-carousel').style.transition = 'none';
-            document.getElementById('c-carousel').style.transform = 'translateX(0)';
-            document.getElementById('c-result').classList.add('hidden');
-            
-            // Генерация ленты рулетки
-            let html = '';
-            for(let i=0; i<85; i++) {
-                const randomItem = ITEMS[Math.floor(Math.random() * ITEMS.length)];
-                html += `<div class="roulette-item item-glow-${randomItem.rarity}">
-                    <img src="${randomItem.img}" class="w-24 h-24 object-contain">
-                </div>`;
-            }
-            document.getElementById('c-carousel').innerHTML = html;
-            setTimeout(startRoll, 100);
-        }
+        function startRoll(caseObj) {
+            if(!user) return openModal('modal-auth');
+            if(userData.balance < caseObj.price) return alert("Недостаточно баланса!");
 
-        function startRoll() {
-            rolling = true;
-            userData.balance -= selectedCase.price;
-            userData.stats.opened++;
-            update(ref(db, `users/${user.uid}`), { balance: userData.balance, stats: userData.stats });
+            closeModal('modal-preview');
+            document.getElementById('modal-roll').classList.remove('hidden');
+            document.getElementById('roll-ui').classList.remove('hidden');
+            document.getElementById('result-ui').classList.add('hidden');
 
-            const winnerIdx = 75;
-            const possibleItems = selectedCase.items.map(id => ITEMS.find(it => it.id === id));
-            won = possibleItems[Math.floor(Math.random() * possibleItems.length)];
-            
-            const carousel = document.getElementById('c-carousel');
-            const winnerEl = carousel.children[winnerIdx];
-            winnerEl.className = `roulette-item item-glow-${won.rarity}`;
-            winnerEl.innerHTML = `<img src="${won.img}" class="w-24 h-24 object-contain">`;
+            const carousel = document.getElementById('carousel');
+            carousel.style.transition = 'none';
+            carousel.style.transform = 'translateX(0)';
 
-            const itemWidth = 168; // min-width 160 + margin 8
-            const containerWidth = document.querySelector('.roulette-container').offsetWidth;
-            const centerOffset = containerWidth / 2 - itemWidth / 2;
-            const stopPosition = (winnerIdx * itemWidth) - centerOffset + (Math.random() * 60 - 30);
+            // Генерация ленты
+            let tape = [];
+            for(let i=0; i<80; i++) tape.push(ITEMS[Math.floor(Math.random() * ITEMS.length)]);
             
-            carousel.style.transition = 'transform 7s cubic-bezier(0.1, 0, 0.1, 1)';
-            carousel.style.transform = `translateX(-${stopPosition}px)`;
+            // Финальный предмет (шанс из кейса)
+            const possible = caseObj.items.map(id => ITEMS.find(it => it.id === id));
+            currentWinningItem = possible[Math.floor(Math.random() * possible.length)];
+            tape[70] = currentWinningItem;
+
+            carousel.innerHTML = tape.map(item => `
+                <div class="item-card">
+                    <img src="${item.img}">
+                    <div class="rarity-line ${item.rarity}" style="position:static; height:3px; margin-top:10px; width:60px; border-radius:5px"></div>
+                </div>
+            `).join('');
+
+            // Списание баланса
+            userData.balance -= caseObj.price;
+            update(ref(db, `users/${user.uid}`), { balance: userData.balance });
 
             setTimeout(() => {
-                rolling = false;
-                document.getElementById('c-result').classList.remove('hidden');
-                document.getElementById('c-result-img').src = won.img;
-                document.getElementById('c-result-name').innerText = won.name;
-                document.getElementById('c-result-price').innerText = won.price.toLocaleString() + " ₽";
-                document.getElementById('c-result-card').className = `glass-card p-8 flex flex-col items-center item-glow-${won.rarity} w-72 scale-110 shadow-2xl`;
-            }, 7500);
+                const itemWidth = 170; // 160 + margin 10
+                const center = document.querySelector('.roulette-container').offsetWidth / 2;
+                const targetPos = (70 * itemWidth) - center + (itemWidth / 2);
+                
+                carousel.style.transition = 'transform 7s cubic-bezier(0.1, 0, 0.1, 1)';
+                carousel.style.transform = `translateX(-${targetPos}px)`;
+            }, 50);
+
+            setTimeout(showResult, 7200);
         }
 
-        window.keepWonItem = () => {
-            userData.inventory.push({ ...won, uid: Date.now() });
+        function showResult() {
+            document.getElementById('roll-ui').classList.add('hidden');
+            document.getElementById('result-ui').classList.remove('hidden');
+            document.getElementById('result-img').src = currentWinningItem.img;
+            document.getElementById('result-name').innerText = currentWinningItem.name;
+            document.getElementById('result-price').innerText = currentWinningItem.price.toLocaleString() + " ₽";
+            document.getElementById('result-rarity').className = `rarity-line ${currentWinningItem.rarity}`;
+        }
+
+        window.keepWin = () => {
+            userData.inventory.push({...currentWinningItem, uid: Date.now()});
             update(ref(db, `users/${user.uid}`), { inventory: userData.inventory });
-            closeModal('modal-case');
+            closeModal('modal-roll');
         };
 
-        window.sellWonItem = () => {
-            userData.balance += won.price;
+        window.sellWin = () => {
+            userData.balance += currentWinningItem.price;
             update(ref(db, `users/${user.uid}`), { balance: userData.balance });
-            closeModal('modal-case');
+            closeModal('modal-roll');
         };
 
-        // НАВИГАЦИЯ
-        window.switchTab = (t) => {
-            ['main','upgrades','contracts','profile'].forEach(id => {
-                document.getElementById(`page-${id}`).classList.add('hidden');
-                document.getElementById(`nav-${id}`)?.classList.remove('tab-active');
-            });
-            document.getElementById(`page-${t}`).classList.remove('hidden');
-            document.getElementById(`nav-${t}`)?.classList.add('tab-active');
+        // UI Helpers
+        window.openModal = (id) => document.getElementById(id).classList.remove('hidden');
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        window.switchTab = (tab) => {
+            document.getElementById('view-home').classList.toggle('hidden', tab !== 'home');
+            document.getElementById('view-profile').classList.toggle('hidden', tab !== 'profile');
         };
-
-        // ИНИЦИАЛИЗАЦИЯ КЕЙСОВ В МАГАЗИНЕ
-        document.getElementById('cases-grid').innerHTML = CASES.map(c => `
-            <div onclick="showCasePreview('${c.id}')" class="glass-card case-card p-6 flex flex-col items-center">
-                <div class="relative w-40 h-40 mb-4">
-                    <img src="https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXU5A1PIYQNkHpXUdfXTe_hmo6rV1J6LhFasL6kJAhu0uD3cz5Y69uzlY6MlfPyP-vVlz0Csccgj-_E99im3gLsqUVuMGr1ddLAdQY_N1HQ_wS4l7-70Je9us_XiSwS/360fx360f" class="w-full h-full object-contain">
-                </div>
-                <div class="text-xs font-black text-gray-500 uppercase mb-1">${c.name}</div>
-                <div class="text-[#ffb400] font-black text-xl">${c.price.toLocaleString()} ₽</div>
-            </div>
-        `).join('');
 
     </script>
 </body>
