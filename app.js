@@ -14,123 +14,62 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Резервный список, если API не ответит
-let allSkins = [
-    {
-        name: "AWP | Dragon Lore", 
-        image: "https://community.cloudflare.static.deno.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1f_BYi59_8yJmY60mvLwOq7c2G1XvJBy2L-S8ImmigLsr0ZkYm71LdSSdgU_ZAnR-1O7wue905-5vJ_AnGwj5HfVp_iXGg/256fx256f", 
-        color: "#eb4b4b"
-    },
-    {
-        name: "M4A4 | Howl", 
-        image: "https://community.cloudflare.static.deno.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopL-zJAt21uH3cih9_92hkY6OlvL4NrXMm1Rd6dd2j6fG8In33gSyr0pvam_7d9XDIQY9YVvS_VDrw-u50MK-uJ_Bznpgu3Zz7H_cnBW0hAYMMLLY6_9s_A/256fx256f", 
-        color: "#eb4b4b"
-    },
-    {
-        name: "AK-47 | Fire Serpent", 
-        image: "https://community.cloudflare.static.deno.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrY6m21Xh-0Rka27yIdXGclA3ZAnV-wK4x7q50MK96J_AnXU363Iq7S7YnBW0hAYMMLLasf_8_A/256fx256f", 
-        color: "#eb4b4b"
-    },
-    {
-        name: "★ Karambit | Doppler", 
-        image: "https://community.cloudflare.static.deno.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2PLacDBA5ciJlY20kPb5PrrukmRB-Ml0mP7V-Inng2f_qxU9OTWhIYPBdwA6aV3S-1C3yOfm1pS06Z_AnXU363V37X_cnBW0hAYMMLL0GFrWjA/256fx256f", 
-        color: "#eb4b4b"
-    },
-    {
-        name: "AK-47 | Vulcan", 
-        image: "https://community.cloudflare.static.deno.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJegJB99KjkZKKm_LwDLbUkmne5bp9i_vG8In9u1as_UM9YGrwLdKRIQ5oNFzW8gS4lbzng8S-6ZzByXcx6XIk-z-DyOWS5i4z/256fx256f", 
-        color: "#d32ce6"
-    }
+// Используем максимально надежные ссылки Steam
+const stableSkins = [
+    { name: "AWP | Dragon Lore", image: "https://community.cloudflare.static.deno.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1f_BYi59_8yJmY60mvLwOq7c2G1XvJBy2L-S8ImmigLsr0ZkYm71LdSSdgU_ZAnR-1O7wue905-5vJ_AnGwj5HfVp_iXGg/200fx200f", color: "#eb4b4b" },
+    { name: "M4A4 | Howl", image: "https://community.cloudflare.static.deno.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopL-zJAt21uH3cih9_92hkY6OlvL4NrXMm1Rd6dd2j6fG8In33gSyr0pvam_7d9XDIQY9YVvS_VDrw-u50MK-uJ_Bznpgu3Zz7H_cnBW0hAYMMLLY6_9s_A/200fx200f", color: "#eb4b4b" },
+    { name: "AK-47 | Fire Serpent", image: "https://community.cloudflare.static.deno.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrY6m21Xh-0Rka27yIdXGclA3ZAnV-wK4x7q50MK96J_AnXU363Iq7S7YnBW0hAYMMLLasf_8_A/200fx200f", color: "#eb4b4b" },
+    { name: "Karambit | Doppler", image: "https://community.cloudflare.static.deno.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2PLacDBA5ciJlY20kPb5PrrukmRB-Ml0mP7V-Inng2f_qxU9OTWhIYPBdwA6aV3S-1C3yOfm1pS06Z_AnXU363V37X_cnBW0hAYMMLL0GFrWjA/200fx200f", color: "#eb4b4b" }
 ];
 
+let allSkins = [...stableSkins];
 let userBalance = 0;
-const CASE_PRICE = 100;
 
 const roulette = document.getElementById('roulette');
 const openBtn = document.getElementById('open-btn');
 const balanceDisplay = document.getElementById('balance');
 
-// 1. Загрузка данных через RAW ссылку GitHub (обход CORS)
-async function loadSkins() {
-    try {
-        const response = await fetch('https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/ru/skins.json');
-        const data = await response.json();
-        if (data.length > 0) {
-            allSkins = data.map(s => ({
-                name: s.name,
-                image: s.image,
-                color: s.rarity.color || "#fff"
-            }));
-            console.log("Скины из API загружены!");
-        }
-        renderInitialList();
-    } catch (e) {
-        console.log("Используем резервный список скинов");
-        renderInitialList();
-    }
-}
-
-// 2. Баланс
-async function initBalance() {
-    const balanceRef = ref(db, 'user/balance');
-    const snapshot = await get(balanceRef);
-    if (snapshot.exists()) {
-        userBalance = snapshot.val();
-    } else {
-        userBalance = 10000;
-        await set(balanceRef, userBalance);
-    }
-    updateBalanceUI();
-}
-
-function updateBalanceUI() {
-    balanceDisplay.innerHTML = `Баланс: <span style="color: #4caf50;">${userBalance.toFixed(0)}$</span>`;
-}
-
-// 3. Создание карточки
-function createCard(skin) {
-    const div = document.createElement('div');
-    div.className = "item";
-    div.style.borderBottom = `4px solid ${skin.color}`;
-    div.innerHTML = `<img src="${skin.image}"><p>${skin.name.split(' | ')[1] || skin.name}</p>`;
-    return div;
-}
-
-// 4. Лента
+// Принудительно отрисовываем ленту сразу
 function renderInitialList() {
     roulette.innerHTML = "";
     roulette.style.transition = "none";
     roulette.style.transform = "translateX(0)";
     for (let i = 0; i < 60; i++) {
-        const randomSkin = allSkins[Math.floor(Math.random() * allSkins.length)];
-        roulette.appendChild(createCard(randomSkin));
+        const skin = allSkins[Math.floor(Math.random() * allSkins.length)];
+        const div = document.createElement('div');
+        div.className = "item";
+        div.style.borderBottom = `4px solid ${skin.color}`;
+        div.innerHTML = `<img src="${skin.image}" alt="skin"><p>${skin.name.split('|')[1] || skin.name}</p>`;
+        roulette.appendChild(div);
     }
 }
 
-// 5. Кнопка
-openBtn.onclick = async () => {
-    if (userBalance < CASE_PRICE) return alert("Недостаточно денег!");
+// Загрузка баланса
+async function init() {
+    const bRef = ref(db, 'user/balance');
+    const snap = await get(bRef);
+    userBalance = snap.exists() ? snap.val() : 10000;
+    balanceDisplay.innerHTML = `Баланс: <span style="color: #4caf50;">${userBalance}$</span>`;
+    renderInitialList();
+}
 
+openBtn.onclick = async () => {
+    if (userBalance < 100) return alert("Мало денег!");
+    
     openBtn.disabled = true;
-    userBalance -= CASE_PRICE;
-    updateBalanceUI();
+    userBalance -= 100;
+    balanceDisplay.innerHTML = `Баланс: <span style="color: #4caf50;">${userBalance}$</span>`;
     await set(ref(db, 'user/balance'), userBalance);
 
-    renderInitialList();
-    
-    const winIndex = 45; 
+    const winIndex = 45;
     const winSkin = allSkins[Math.floor(Math.random() * allSkins.length)];
-    const winCard = roulette.children[winIndex];
-    winCard.style.borderBottom = `5px solid ${winSkin.color}`;
-    winCard.innerHTML = `<img src="${winSkin.image}"><p>${winSkin.name}</p>`;
+    const cards = roulette.children;
+    cards[winIndex].innerHTML = `<img src="${winSkin.image}"><p>${winSkin.name}</p>`;
+    cards[winIndex].style.borderBottom = `5px solid ${winSkin.color}`;
 
-    setTimeout(() => {
-        roulette.style.transition = "transform 5s cubic-bezier(0.1, 0, 0.1, 1)";
-        const itemWidth = 140; 
-        const containerWidth = roulette.parentElement.offsetWidth;
-        const targetPos = (winIndex * itemWidth) + (itemWidth / 2) - (containerWidth / 2);
-        roulette.style.transform = `translateX(-${targetPos}px)`;
-    }, 100);
+    roulette.style.transition = "transform 5s cubic-bezier(0.1, 0, 0.1, 1)";
+    const shift = (winIndex * 140) + 70 - (roulette.parentElement.offsetWidth / 2);
+    roulette.style.transform = `translateX(-${shift}px)`;
 
     setTimeout(async () => {
         await push(ref(db, 'history'), { name: winSkin.name, img: winSkin.image, color: winSkin.color });
@@ -138,19 +77,13 @@ openBtn.onclick = async () => {
     }, 5500);
 };
 
-// 6. История
-onValue(query(ref(db, 'history'), limitToLast(12)), (snapshot) => {
-    const historyDiv = document.getElementById('history');
-    historyDiv.innerHTML = "";
-    snapshot.forEach(child => {
-        const data = child.val();
-        const div = document.createElement('div');
-        div.className = "history-item";
-        div.style.borderBottom = `3px solid ${data.color}`;
-        div.innerHTML = `<img src="${data.img}" title="${data.name}">`;
-        historyDiv.prepend(div);
+onValue(query(ref(db, 'history'), limitToLast(10)), (snap) => {
+    const hist = document.getElementById('history');
+    hist.innerHTML = "";
+    snap.forEach(c => {
+        const d = c.val();
+        hist.insertAdjacentHTML('afterbegin', `<div class="history-item" style="border-bottom: 2px solid ${d.color}"><img src="${d.img}" width="50"></div>`);
     });
 });
 
-loadSkins();
-initBalance();
+init();
